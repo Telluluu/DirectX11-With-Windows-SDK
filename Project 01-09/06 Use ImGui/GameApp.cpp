@@ -47,7 +47,7 @@ void GameApp::UpdateScene(float dt)
 
     // 获取IO事件
     ImGuiIO& io = ImGui::GetIO();
-    
+
     //
     // 自定义窗口与操作
     //
@@ -80,7 +80,7 @@ void GameApp::UpdateScene(float dt)
 
         ImGui::Text("FOV: %.2f degrees", XMConvertToDegrees(fov));
         ImGui::SliderFloat("##3", &fov, XM_PIDIV4, XM_PI / 3 * 2, "");
-        
+
         if (ImGui::Checkbox("Use Custom Color", &customColor))
             m_CBuffer.useCustomColor = customColor;
         if (customColor)
@@ -89,7 +89,7 @@ void GameApp::UpdateScene(float dt)
         }
     }
     ImGui::End();
- 
+
     // 不允许在操作UI时操作物体
     if (!ImGui::IsAnyItemActive())
     {
@@ -117,12 +117,12 @@ void GameApp::UpdateScene(float dt)
                 scale = 0.2f;
         }
     }
-    
+
 
 
     m_CBuffer.world = XMMatrixTranspose(
-        XMMatrixScalingFromVector(XMVectorReplicate(scale)) * 
-        XMMatrixRotationX(phi) * XMMatrixRotationY(theta) * 
+        XMMatrixScalingFromVector(XMVectorReplicate(scale)) *
+        XMMatrixRotationX(phi) * XMMatrixRotationY(theta) *
         XMMatrixTranslation(tx, ty, 0.0f));
     m_CBuffer.proj = XMMatrixTranspose(XMMatrixPerspectiveFovLH(fov, AspectRatio(), 1.0f, 1000.0f));
     // 更新常量缓冲区
@@ -142,7 +142,7 @@ void GameApp::DrawScene()
     m_pd3dImmediateContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     // 绘制立方体
-    m_pd3dImmediateContext->DrawIndexed(36, 0, 0);
+    m_pd3dImmediateContext->DrawIndexed(18, 0, 0);
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -182,14 +182,39 @@ bool GameApp::InitResource()
     //  0       3
     VertexPosColor vertices[] =
     {
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        //{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+        //{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+        //{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }
+
+    // ******************
+    // 设置立方体顶点
+    //     ________  
+    //    /|  4   /|
+    //   /_|_____/ |
+    //   |1|_ _  |_|3
+    //   | /     | /
+    //   |/______|/
+    //  0        2
+    // 
+    // 
+    //           4
+    //         / \\
+    //        /   \\
+    //     1 / ____\\3        很抽象的四棱锥，凑合看吧2333
+    //    | /     | /         底面四个顶点分别是0 1 2 3号
+    //    |/______|/          棱锥顶点是4号
+    //  0        2
+
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(0, 1.0f, 0), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }
     };
     // 设置顶点缓冲区描述
     D3D11_BUFFER_DESC vbd;
@@ -209,23 +234,19 @@ bool GameApp::InitResource()
     //
     DWORD indices[] = {
         // 正面
-        0, 1, 2,
-        2, 3, 0,
+        0, 4, 2,
         // 左面
-        4, 5, 1,
-        1, 0, 4,
-        // 顶面
-        1, 5, 6,
-        6, 2, 1,
+        1, 4, 0,
         // 背面
-        7, 6, 5,
-        5, 4, 7,
+        3, 4, 1,
         // 右面
-        3, 2, 6,
-        6, 7, 3,
+        2, 4, 3,
         // 底面
-        4, 0, 3,
-        3, 7, 4
+        0, 2, 1,
+        1, 2, 3
+
+
+
     };
     // 设置索引缓冲区描述
     D3D11_BUFFER_DESC ibd;
