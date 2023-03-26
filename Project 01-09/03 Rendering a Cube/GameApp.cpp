@@ -1,7 +1,14 @@
 #include "GameApp.h"
 #include "d3dUtil.h"
 #include "DXTrace.h"
+#include<Windows.h>
+#include"Mouse.h"
+#include"Keyboard.h"
+#include<memory>
+#pragma comment(lib,"ws2_32.lib")
+
 using namespace DirectX;
+
 
 const D3D11_INPUT_ELEMENT_DESC GameApp::VertexPosColor::inputLayout[2] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -19,6 +26,9 @@ GameApp::~GameApp()
 
 bool GameApp::Init()
 {
+    //m_pMouse = std::make_unique<DirectX::Mouse>();
+    //m_pKeyboard = std::make_unique<DirectX::Keyboard>();
+
     if (!D3DApp::Init())
         return false;
 
@@ -28,6 +38,10 @@ bool GameApp::Init()
     if (!InitResource())
         return false;
 
+    ////将鼠标初始化
+    //m_pMouse->SetWindow(m_hMainWnd);
+    //m_pMouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+
     return true;
 }
 
@@ -36,12 +50,27 @@ void GameApp::OnResize()
     D3DApp::OnResize();
 }
 
-void GameApp::UpdateScene(float dt)
+void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
 {
 
     static float phi = 0.0f, theta = 0.0f;
     phi += 0.3f * dt, theta += 0.37f * dt;
     m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationX(phi) * XMMatrixRotationY(theta));
+
+    //static float cubePhi = 0.0f, cubeTheta = 0.0f, cubemid = 1.0f;
+    //
+    //Mouse::State lastMouseState = m_MouseTracker.GetLastState();
+    //Mouse::State mouseState = m_pMouse->GetState();
+    //int dx = mouseState.x - lastMouseState.x, dy = mouseState.y - lastMouseState.y;
+
+
+    //if (mouseState.leftButton == true && m_MouseTracker.leftButton == m_MouseTracker.HELD) //左键按下且按住时
+    //{
+    //    // 旋转立方体
+    //    cubeTheta -= (dx) * 0.01f;
+    //    cubePhi -= (dy) * 0.01f;
+    //}
+
     // 更新常量缓冲区，让立方体转起来
     D3D11_MAPPED_SUBRESOURCE mappedData;
     HR(m_pd3dImmediateContext->Map(m_pConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
@@ -99,7 +128,7 @@ bool GameApp::InitResource()
         { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) }
     };
     // 设置顶点缓冲区描述
     D3D11_BUFFER_DESC vbd;

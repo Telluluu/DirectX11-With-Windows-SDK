@@ -113,6 +113,10 @@ int D3DApp::Run()
 
 bool D3DApp::Init()
 {
+
+    //m_pMouse = std::make_unique<DirectX::Mouse>();
+    //m_pKeyboard = std::make_unique<DirectX::Keyboard>();
+
     if (!InitMainWindow())
         return false;
 
@@ -324,6 +328,34 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
     case WM_MOUSEMOVE:
         return 0;
+
+    /*case WM_LBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    case WM_XBUTTONDOWN:
+
+    case WM_LBUTTONUP:
+    case WM_MBUTTONUP:
+    case WM_RBUTTONUP:
+    case WM_XBUTTONUP:
+
+    case WM_MOUSEWHEEL:
+    case WM_MOUSEHOVER:
+    case WM_MOUSEMOVE:
+        m_pMouse->ProcessMessage(msg, wParam, lParam);
+        return 0;
+
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+        return 0;
+
+    case WM_ACTIVATEAPP:
+        m_pMouse->ProcessMessage(msg, wParam, lParam);
+        m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+        return 0;*/
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);

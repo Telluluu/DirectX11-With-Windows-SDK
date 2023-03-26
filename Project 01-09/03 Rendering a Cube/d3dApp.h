@@ -7,6 +7,9 @@
 #include <d3d11_1.h>
 #include <DirectXMath.h>
 #include "CpuTimer.h"
+#include <memory>
+#include "Mouse.h"
+#include "Keyboard.h"
 
 class D3DApp
 {
@@ -21,7 +24,7 @@ public:
     int Run();                      // 运行程序，进行游戏主循环
 
     // 框架方法。客户派生类需要重载这些方法以实现特定的应用需求
-    virtual bool Init();                      // 该父类方法需要初始化窗口和Direct3D部分
+    virtual bool Init() ;                     // 该父类方法需要初始化窗口和Direct3D部分
     virtual void OnResize();                  // 该父类方法需要在窗口大小变动的时候调用
     virtual void UpdateScene(float dt) = 0;   // 子类需要实现该方法，完成每一帧的更新
     virtual void DrawScene() = 0;             // 子类需要实现该方法，完成每一帧的绘制
@@ -63,6 +66,12 @@ protected:
     ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;                  // 渲染目标视图
     ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;                  // 深度模板视图
     D3D11_VIEWPORT                 m_ScreenViewport;                     // 视口
+
+    //// 键鼠输入
+    //std::unique_ptr<DirectX::Mouse> m_pMouse;					// 鼠标
+    //DirectX::Mouse::ButtonStateTracker m_MouseTracker;			// 鼠标状态追踪器
+    //std::unique_ptr<DirectX::Keyboard> m_pKeyboard;				// 键盘
+    //DirectX::Keyboard::KeyboardStateTracker m_KeyboardTracker;	// 键盘状态追踪器
 
     // 派生类应该在构造函数设置好这些自定义的初始参数
     std::wstring m_MainWndCaption;                       // 主窗口标题
