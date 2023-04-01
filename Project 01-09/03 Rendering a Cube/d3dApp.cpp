@@ -318,18 +318,19 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
         return 0;
 
-    case WM_LBUTTONDOWN:
-    case WM_MBUTTONDOWN:
-    case WM_RBUTTONDOWN:
-        return 0;
-    case WM_LBUTTONUP:
-    case WM_MBUTTONUP:
-    case WM_RBUTTONUP:
-        return 0;
-    case WM_MOUSEMOVE:
-        return 0;
+    //case WM_LBUTTONDOWN:
+    //case WM_MBUTTONDOWN:
+    //case WM_RBUTTONDOWN:
+    //    return 0;
+    //case WM_LBUTTONUP:
+    //case WM_MBUTTONUP:
+    //case WM_RBUTTONUP:
+    //    return 0;
+    //case WM_MOUSEMOVE:
+    //    return 0;
+        //
 
-    /*case WM_LBUTTONDOWN:
+    case WM_LBUTTONDOWN:
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
     case WM_XBUTTONDOWN:
@@ -355,7 +356,7 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_ACTIVATEAPP:
         m_pMouse->ProcessMessage(msg, wParam, lParam);
         m_pKeyboard->ProcessMessage(msg, wParam, lParam);
-        return 0;*/
+        return 0;
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
