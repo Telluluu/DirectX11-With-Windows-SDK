@@ -54,7 +54,7 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
     //static float phi = 0.0f, theta = 0.0f;
     //phi += 0.3f * dt, theta += 0.37f * dt;
 
-    static float pyramidPhi = 0.0f, pyramidTheta = 0.0f, pyramidmid = 1.0f; //记录旋转角度
+    static float pyramidPhi = 0.0f, pyramidTheta = 0.0f, pyramidmid = 1.0f; //记录旋转角度、缩放倍率
     static float trans_pyramidPhi = 0.0f, trans_pyramidTheta = 0.0f, trans_pyramidDelta = 0.0f; //记录平移距离
 
     Mouse::State mouseState = m_pMouse->GetState(); //用GetState()函数获取当前帧鼠标运动状态
@@ -119,6 +119,7 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
         trans_pyramidPhi += dt * 2;
     /******************************************************************************************************/
     //更新常量缓冲区
+    //更改world矩阵，先旋转再缩放，最后平移
     m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationY(pyramidTheta) * XMMatrixRotationX(pyramidPhi) * XMMatrixScaling(pyramidmid, pyramidmid, pyramidmid) * XMMatrixTranslation(trans_pyramidPhi, trans_pyramidTheta, trans_pyramidDelta));
     D3D11_MAPPED_SUBRESOURCE mappedData;
     HR(m_pd3dImmediateContext->Map(m_pConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
