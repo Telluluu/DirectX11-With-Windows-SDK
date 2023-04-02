@@ -5,6 +5,7 @@
 #include"Mouse.h"
 #include"Keyboard.h"
 #include<memory>
+#include "d3dApp.h"
 
 using namespace DirectX;
 
@@ -56,76 +57,65 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
     ImGui::ShowDemoWindow();
     ImGui::ShowUserGuide();
 
-    //static float phi = 0.0f, theta = 0.0f;
-    //phi += 0.3f * dt, theta += 0.37f * dt;
+    static float pyramidPhi = 0.0f, pyramidTheta = 0.0f, pyramidmid = 1.0f; //记录旋转角度、缩放倍率
+    static float trans_pyramidPhi = 0.0f, trans_pyramidTheta = 0.0f, trans_pyramidDelta = 0.0f; //记录平移距离
 
-    //static float pyramidPhi = 0.0f, pyramidTheta = 0.0f, pyramidmid = 1.0f; //记录旋转角度、缩放倍率
-    //static float trans_pyramidPhi = 0.0f, trans_pyramidTheta = 0.0f, trans_pyramidDelta = 0.0f; //记录平移距离
+    if (ImGui::Begin("Use ImGui"))//创建一个名为"Use ImGui"的窗口
+    {
+        //用Text函数打印操作提示
+        ImGui::Text("Hold Left Button to Rotate");
+        ImGui::Text("Hold Right Button to Translate");
 
-    //Mouse::State mouseState = m_pMouse->GetState(); //用GetState()函数获取当前帧鼠标运动状态
-    //Mouse::State lastMouseState = m_MouseTracker.GetLastState(); //获取前一帧鼠标状态
-    //m_MouseTracker.Update(mouseState);//获取完鼠标状态，更新鼠标状态
+        //使用按钮来重置缩放、旋转、平移
+        if (ImGui::Button("Reset Params"))
+        {
+            //旋转角度、缩放倍率、平移距离初始化
+            pyramidPhi = pyramidTheta = 0.0f;
+            pyramidmid = 1.0f;
+            trans_pyramidPhi = trans_pyramidTheta = trans_pyramidDelta = 0.0f;
+        }
+        ImGui::SliderFloat("Scale", &pyramidmid, 0.2f, 10.0f);//用一个滑条来控制缩放，并显示当前缩放倍率
+        ImGui::SliderFloat("Phi", &pyramidPhi, -XM_PI, XM_PI);     // 显示转动角度
+        ImGui::SliderFloat("Theta", &pyramidTheta, -XM_PI, XM_PI);  // 显示转动角度
+    }
+    //关闭窗口
+    ImGui::End();
 
-    //Keyboard::State keyState = m_pKeyboard->GetState(); //获取当前帧下键盘所有按键的状态
-    //Keyboard::State lastKeyState = m_KeyboardTracker.GetLastState(); //判断按键是刚按下还是刚放开
-    //m_KeyboardTracker.Update(keyState);//获取完键盘状态，更新键盘状态
+    ImGuiIO& io = ImGui::GetIO();//获取鼠标输入
+    //auto& delta = io.MouseDelta; // 当前帧鼠标位移量
+    //io.MouseWheel;//鼠标滚轮
 
+    //int dx = , dy = ;//用dx和dy记录鼠标的x轴/y轴偏移量
+    //int dscrollWheel = ;//用dmin来记录滚轮变化值
 
-    //int dx = mouseState.x - lastMouseState.x, dy = mouseState.y - lastMouseState.y;//用dx和dy记录鼠标的x轴/y轴偏移量
-    //int dscrollWheel = mouseState.scrollWheelValue - lastMouseState.scrollWheelValue;//用dmin来记录滚轮变化值
-
-    ///******************************************************************************************************/
-    ///*旋转控制*/
-
-    ////左键按下且按住时
-    //if (mouseState.leftButton == true && m_MouseTracker.leftButton == m_MouseTracker.HELD)
-    //{
-    //    // 旋转立方体
-    //    pyramidTheta -= (dx) * 0.01f;
-    //    pyramidPhi -= (dy) * 0.01f;
-    //}
-
-    ////根据按下的按键进行旋转
-    //if (keyState.IsKeyDown(Keyboard::Up))  //WS键或上下键控制y轴
-    //    pyramidPhi += dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::Down))
-    //    pyramidPhi -= dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::Left))  //AD键或左右键控制x轴
-    //    pyramidTheta += dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::Right))
-    //    pyramidTheta -= dt * 2;
-
-    ///******************************************************************************************************/
-
-    ////缩放控制
-    //pyramidmid += dscrollWheel * 0.001f;  //根据滚轮变化值来决定缩放
-    //if (keyState.IsKeyDown(Keyboard::Q))  //QE键控制缩放
-    //    pyramidmid += dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::E))
-    //    pyramidmid -= dt * 2;
-
-    ///******************************************************************************************************/
-    ///*平移控制*/
-    //    //右键按下且按住时
-    //if (mouseState.rightButton == true && m_MouseTracker.rightButton == m_MouseTracker.HELD)
-    //{
-    //    // 平移立方体
-    //    trans_pyramidTheta -= (dy) * 0.01f;
-    //    trans_pyramidPhi += (dx) * 0.01f;
-    //}
-    ////根据按下的按键进行平移
-    //if (keyState.IsKeyDown(Keyboard::W))  //WS键或上下键控制y轴
-    //    trans_pyramidTheta += dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::S))
-    //    trans_pyramidTheta -= dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::A))  //AD键或左右键控制x轴
-    //    trans_pyramidPhi -= dt * 2;
-    //if (keyState.IsKeyDown(Keyboard::D))
-    //    trans_pyramidPhi += dt * 2;
-    ///******************************************************************************************************/
-    ////更新常量缓冲区
-    ////更改world矩阵，先旋转再缩放，最后平移
-    //m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationY(pyramidTheta) * XMMatrixRotationX(pyramidPhi) * XMMatrixScaling(pyramidmid, pyramidmid, pyramidmid) * XMMatrixTranslation(trans_pyramidPhi, trans_pyramidTheta, trans_pyramidDelta));
+    /******************************************************************************************************/
+    if (!ImGui::IsAnyItemActive())//当ImGui的UI处于非活跃状态时
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Right))//拖动右键平移
+        {
+            trans_pyramidPhi += io.MouseDelta.x * 0.01f;
+            trans_pyramidTheta -= io.MouseDelta.y * 0.01f;
+        }
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))//拖动左键旋转
+        {
+            pyramidPhi -= io.MouseDelta.y * 0.01f;
+            pyramidTheta -= io.MouseDelta.x * 0.01f;
+        }
+        if (io.MouseWheel!=0.0f)
+        {
+            pyramidmid += io.MouseWheel * 0.2f;
+            if (pyramidmid > 10.0f)//设置缩放速率阈值
+                pyramidmid = 10.0f;
+            else if (pyramidmid < 0.2f)
+                pyramidmid = 0.2f;
+        }
+    }
+    /******************************************************************************************************/
+    //更新常量缓冲区
+    //先缩放，再旋转，最后平移
+    m_CBuffer.world = XMMatrixTranspose(XMMatrixScaling(pyramidmid, pyramidmid, pyramidmid)*       
+        XMMatrixRotationY(pyramidTheta) * XMMatrixRotationX(pyramidPhi) *
+        XMMatrixTranslation(trans_pyramidPhi, trans_pyramidTheta, trans_pyramidDelta));
     D3D11_MAPPED_SUBRESOURCE mappedData;
     HR(m_pd3dImmediateContext->Map(m_pConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
     memcpy_s(mappedData.pData, sizeof(m_CBuffer), &m_CBuffer, sizeof(m_CBuffer));
