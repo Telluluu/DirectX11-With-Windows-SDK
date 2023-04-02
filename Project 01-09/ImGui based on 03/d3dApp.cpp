@@ -13,6 +13,8 @@ extern "C"
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 0x00000001;
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace
 {
     // This is just used to forward Windows messages from a global window
@@ -98,6 +100,13 @@ int D3DApp::Run()
             if (!m_AppPaused)
             {
                 CalculateFrameStats();
+
+                // 这里添加
+                ImGui_ImplDX11_NewFrame();
+                ImGui_ImplWin32_NewFrame();
+                ImGui::NewFrame();
+                // --------用于启动ImGui新一帧的记录与绘制
+
                 UpdateScene(m_Timer.DeltaTime());
                 DrawScene();
             }
@@ -121,6 +130,9 @@ bool D3DApp::Init()
         return false;
 
     if (!InitDirect3D())
+        return false;
+
+    if (!InitImGui())
         return false;
 
     return true;
@@ -210,6 +222,9 @@ void D3DApp::OnResize()
 
 LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(m_hMainWnd, msg, wParam, lParam))
+        return true;
+
     switch (msg)
     {
         // WM_ACTIVATE is sent when the window is activated or deactivated.  
@@ -318,45 +333,45 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
         return 0;
 
-    //case WM_LBUTTONDOWN:
-    //case WM_MBUTTONDOWN:
-    //case WM_RBUTTONDOWN:
-    //    return 0;
-    //case WM_LBUTTONUP:
-    //case WM_MBUTTONUP:
-    //case WM_RBUTTONUP:
-    //    return 0;
-    //case WM_MOUSEMOVE:
-    //    return 0;
-        //
-
     case WM_LBUTTONDOWN:
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
-    case WM_XBUTTONDOWN:
-
+        return 0;
     case WM_LBUTTONUP:
     case WM_MBUTTONUP:
     case WM_RBUTTONUP:
-    case WM_XBUTTONUP:
-
-    case WM_MOUSEWHEEL:
-    case WM_MOUSEHOVER:
+        return 0;
     case WM_MOUSEMOVE:
-        m_pMouse->ProcessMessage(msg, wParam, lParam);
         return 0;
+        //
 
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-        m_pKeyboard->ProcessMessage(msg, wParam, lParam);
-        return 0;
+    //case WM_LBUTTONDOWN:
+    //case WM_MBUTTONDOWN:
+    //case WM_RBUTTONDOWN:
+    //case WM_XBUTTONDOWN:
 
-    case WM_ACTIVATEAPP:
-        m_pMouse->ProcessMessage(msg, wParam, lParam);
-        m_pKeyboard->ProcessMessage(msg, wParam, lParam);
-        return 0;
+    //case WM_LBUTTONUP:
+    //case WM_MBUTTONUP:
+    //case WM_RBUTTONUP:
+    //case WM_XBUTTONUP:
+
+    //case WM_MOUSEWHEEL:
+    //case WM_MOUSEHOVER:
+    //case WM_MOUSEMOVE:
+    //    m_pMouse->ProcessMessage(msg, wParam, lParam);
+    //    return 0;
+
+    //case WM_KEYDOWN:
+    //case WM_SYSKEYDOWN:
+    //case WM_KEYUP:
+    //case WM_SYSKEYUP:
+    //    m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+    //    return 0;
+
+    //case WM_ACTIVATEAPP:
+    //    m_pMouse->ProcessMessage(msg, wParam, lParam);
+    //    m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+    //    return 0;
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);

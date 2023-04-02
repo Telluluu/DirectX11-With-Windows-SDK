@@ -44,12 +44,12 @@ foreach(HLSL_FILE ${HLSL_FILES})
 								VS_SHADER_ENABLE_DEBUG $<$<CONFIG:Debug>:true>)
 endforeach()
 
-add_executable(03_Rendering_a_Cube WIN32 ${DIR_SRCS} ${HEADER_FILES} ${HLSL_FILES})
-target_link_libraries(03_Rendering_a_Cube d3d11.lib dxgi.lib dxguid.lib D3DCompiler.lib d2d1.lib dwrite.lib winmm.lib)
+add_executable(ImGui_based_on_03 WIN32 ${DIR_SRCS} ${HEADER_FILES} ${HLSL_FILES})
+target_link_libraries(ImGui_based_on_03 d3d11.lib dxgi.lib dxguid.lib D3DCompiler.lib d2d1.lib dwrite.lib winmm.lib)
 
 source_group("HLSL Files" FILES ${HLSL_FILES})
-set_target_properties(03_Rendering_a_Cube PROPERTIES OUTPUT_NAME "03 Rendering a Cube")
+set_target_properties(ImGui_based_on_03 PROPERTIES OUTPUT_NAME "03 Rendering a Cube")
 
-set_target_properties(03_Rendering_a_Cube PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
-set_target_properties(03_Rendering_a_Cube PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
-set_target_properties(03_Rendering_a_Cube PROPERTIES FOLDER "Project 01-09")
+set_target_properties(ImGui_based_on_03 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
+set_target_properties(ImGui_based_on_03 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+set_target_properties(ImGui_based_on_03 PROPERTIES FOLDER "Project 01-09")

@@ -10,6 +10,9 @@
 #include <memory>
 #include "Mouse.h"
 #include "Keyboard.h"
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
 
 class D3DApp
 {
@@ -33,7 +36,24 @@ public:
 protected:
     bool InitMainWindow();      // 窗口初始化
     bool InitDirect3D();        // Direct3D初始化
+    bool D3DApp::InitImGui()
+    {
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // 允许键盘控制
+        io.ConfigWindowsMoveFromTitleBarOnly = true;              // 仅允许标题拖动
 
+        // 设置Dear ImGui风格
+        ImGui::StyleColorsDark();
+
+        // 设置平台/渲染器后端
+        ImGui_ImplWin32_Init(m_hMainWnd);
+        ImGui_ImplDX11_Init(m_pd3dDevice.Get(), m_pd3dImmediateContext.Get());
+
+        return true;
+
+    }
     void CalculateFrameStats(); // 计算每秒帧数并在窗口显示
 
 protected:
@@ -67,11 +87,11 @@ protected:
     ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;                  // 深度模板视图
     D3D11_VIEWPORT                 m_ScreenViewport;                     // 视口
 
-    // 键鼠输入
-    std::unique_ptr<DirectX::Mouse> m_pMouse;					// 鼠标
-    DirectX::Mouse::ButtonStateTracker m_MouseTracker;			// 鼠标状态追踪器
-    std::unique_ptr<DirectX::Keyboard> m_pKeyboard;				// 键盘
-    DirectX::Keyboard::KeyboardStateTracker m_KeyboardTracker;	// 键盘状态追踪器
+    // //键鼠输入
+    //std::unique_ptr<DirectX::Mouse> m_pMouse;					// 鼠标
+    //DirectX::Mouse::ButtonStateTracker m_MouseTracker;			// 鼠标状态追踪器
+    //std::unique_ptr<DirectX::Keyboard> m_pKeyboard;				// 键盘
+    //DirectX::Keyboard::KeyboardStateTracker m_KeyboardTracker;	// 键盘状态追踪器
 
     // 派生类应该在构造函数设置好这些自定义的初始参数
     std::wstring m_MainWndCaption;                       // 主窗口标题
