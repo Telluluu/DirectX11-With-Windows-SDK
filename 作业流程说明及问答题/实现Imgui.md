@@ -83,7 +83,7 @@ ImGui::ShowUserGuide();
 
 #### 结果
 
-![](markdownfiles\ImGui构建.png)
+![](https://raw.githubusercontent.com/Telluluu/DirectX11-With-Windows-SDK/%E5%88%98%E6%9B%A6%E7%83%A8/%E4%BD%9C%E4%B8%9A%E6%B5%81%E7%A8%8B%E8%AF%B4%E6%98%8E%E5%8F%8A%E9%97%AE%E7%AD%94%E9%A2%98/markdownfiles/ImGui%E6%9E%84%E5%BB%BA.png)
 
 
 
@@ -172,4 +172,4 @@ if (!ImGui::IsAnyItemActive())//当ImGui的UI处于非活跃状态时
 
 ##### 结果
 
-![](markdownfiles\ImGui鼠标操作及文本提示.jpg)
+![](https://raw.githubusercontent.com/Telluluu/DirectX11-With-Windows-SDK/%E5%88%98%E6%9B%A6%E7%83%A8/%E4%BD%9C%E4%B8%9A%E6%B5%81%E7%A8%8B%E8%AF%B4%E6%98%8E%E5%8F%8A%E9%97%AE%E7%AD%94%E9%A2%98/markdownfiles/ImGui%E9%BC%A0%E6%A0%87%E6%93%8D%E4%BD%9C%E5%8F%8A%E6%96%87%E6%9C%AC%E6%8F%90%E7%A4%BA.jpg)
