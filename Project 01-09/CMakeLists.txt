@@ -8,6 +8,7 @@ add_subdirectory("07 Lighting")
 add_subdirectory("08 Direct2D and Direct3D Interoperability")
 add_subdirectory("09 Texture Mapping")
 add_subdirectory("ImGui based on 03")
+add_subdirectory("Week3")
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Texture)
 	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Texture DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

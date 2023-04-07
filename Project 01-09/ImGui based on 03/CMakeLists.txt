@@ -47,8 +47,12 @@ endforeach()
 add_executable(ImGui_based_on_03 WIN32 ${DIR_SRCS} ${HEADER_FILES} ${HLSL_FILES})
 target_link_libraries(ImGui_based_on_03 d3d11.lib dxgi.lib dxguid.lib D3DCompiler.lib d2d1.lib dwrite.lib winmm.lib)
 
+# ImGui
+target_link_libraries(ImGui_based_on_03 ImGui)
+file(COPY imgui.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 source_group("HLSL Files" FILES ${HLSL_FILES})
-set_target_properties(ImGui_based_on_03 PROPERTIES OUTPUT_NAME "03 Rendering a Cube")
+set_target_properties(ImGui_based_on_03 PROPERTIES OUTPUT_NAME "ImGui based on 03")
 
 set_target_properties(ImGui_based_on_03 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(ImGui_based_on_03 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
