@@ -90,7 +90,6 @@ private:
     ComPtr<ID3D11PixelShader> m_pPixelShader2D;				    // 用于2D的像素着色器
 
     VSConstantBuffer m_VSConstantBuffer;						// 用于修改用于VS的GPU常量缓冲区的变量
-    VSConstantBuffer m_VSConstantBuffer_tex;
     PSConstantBuffer m_PSConstantBuffer;						// 用于修改用于PS的GPU常量缓冲区的变量
 };
 
