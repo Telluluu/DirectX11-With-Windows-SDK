@@ -9,6 +9,7 @@
 #ifndef D3DUTIL_H
 #define D3DUTIL_H
 
+#include "WinMin.h"
 #include <d3d11_1.h>			// 已包含Windows.h
 #include <DirectXCollision.h>	// 已包含DirectXMath.h
 #include <DirectXPackedVector.h>
@@ -16,7 +17,8 @@
 #include <d3dcompiler.h>
 #include <vector>
 #include <string>
-
+#include "DDSTextureLoader11.h"	
+#include "WICTextureLoader11.h"
 
 //
 // 宏相关
@@ -184,6 +186,24 @@ HRESULT CreateShaderFromFile(
     LPCSTR shaderModel,
     ID3DBlob** ppBlobOut);
 
+//
+// 数学相关函数
+//
+
+// ------------------------------
+// InverseTranspose函数
+// ------------------------------
+inline DirectX::XMMATRIX XM_CALLCONV InverseTranspose(DirectX::FXMMATRIX M)
+{
+    using namespace DirectX;
+
+    // 世界矩阵的逆的转置仅针对法向量，我们也不需要世界矩阵的平移分量
+    // 而且不去掉的话，后续再乘上观察矩阵之类的就会产生错误的变换结果
+    XMMATRIX A = M;
+    A.r[3] = g_XMIdentityR3;
+
+    return XMMatrixTranspose(XMMatrixInverse(nullptr, A));
+}
 
 
 

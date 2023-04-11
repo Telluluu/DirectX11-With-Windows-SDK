@@ -601,5 +601,3 @@ void D3DApp::CalculateFrameStats()
         timeElapsed += 1.0f;
     }
 }
-
-

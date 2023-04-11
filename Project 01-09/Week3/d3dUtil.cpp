@@ -48,4 +48,3 @@ HRESULT CreateShaderFromFile(
 
     return hr;
 }
-
