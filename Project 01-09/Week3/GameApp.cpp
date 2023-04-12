@@ -68,7 +68,7 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
     ResetMesh(meshData);
     m_pd3dImmediateContext->VSSetShader(m_pVertexShader3D.Get(), nullptr, 0);
     m_pd3dImmediateContext->PSSetShader(m_pPixelShader3D.Get(), nullptr, 0);
-    m_pd3dImmediateContext->PSSetShaderResources(0, 1, m_pWoodCrate.GetAddressOf());
+    m_pd3dImmediateContext->PSSetShaderResources(0, 1, m_pTex.GetAddressOf());
 
     ImGui::Render();
     //m_pd3dImmediateContext->IASetInputLayout(m_pVertexLayout2D.Get());
@@ -240,7 +240,7 @@ bool GameApp::InitResource()
    // 初始化纹理和采样器状态
 
    // 初始化木箱纹理
-    HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\WoodCrate.dds", nullptr, m_pWoodCrate.GetAddressOf()));
+    HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\flare.dds", nullptr, m_pTex.GetAddressOf()));
 
     // 初始化采样器状态
     D3D11_SAMPLER_DESC sampDesc;
@@ -326,7 +326,7 @@ bool GameApp::InitResource()
     m_pd3dImmediateContext->PSSetConstantBuffers(1, 1, m_pConstantBuffers[1].GetAddressOf());
     // 像素着色阶段设置好采样器
     m_pd3dImmediateContext->PSSetSamplers(0, 1, m_pSamplerState.GetAddressOf());
-    m_pd3dImmediateContext->PSSetShaderResources(0, 1, m_pWoodCrate.GetAddressOf());
+    m_pd3dImmediateContext->PSSetShaderResources(0, 1, m_pTex.GetAddressOf());
     m_pd3dImmediateContext->PSSetShader(m_pPixelShader3D.Get(), nullptr, 0);
    
 
