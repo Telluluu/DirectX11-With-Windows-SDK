@@ -11,5 +11,6 @@ VertexPosHWNormalTex VS_3D(VertexPosNormalTex vIn)
     vOut.posW = posW.xyz; //保存世界坐标
     vOut.normalW = mul(vIn.normalL, (float3x3) g_WorldInvTranspose); //法线变换
     vOut.tex = mul(float4(vIn.tex,0.0f,1.0f), (float4x4) g_tex_rotation); // 纹理坐标，我们要让纹理旋转，所以乘于一个旋转矩阵
-    return vOut;                                                           //注意要将纹理坐标从xy转为xyzw,因为是2D纹理所以z轴坐标不影响效果
+                                                                          //注意要将纹理坐标从xy转为xyzw,因为是2D纹理所以z轴坐标不影响效果
+    return vOut;
 }
