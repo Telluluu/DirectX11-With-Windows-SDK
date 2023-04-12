@@ -83,12 +83,11 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
     XMMATRIX W = XMMatrixRotationX(phi) * XMMatrixRotationY(theta);
     m_VSConstantBuffer.world = XMMatrixTranspose(W);
     m_VSConstantBuffer.worldInvTranspose = XMMatrixTranspose(InverseTranspose(W));
-
+ 
     static float tex_phi = 0.0f;
-    tex_phi += 0.0001f;
-    XMMATRIX tex_Matrix = XMMatrixTranslation(-0.5f,-0.5f,0.0f)* XMMatrixRotationX(tex_phi)*XMMatrixTranslation(0.5f, 0.5f, 0.0f);
-    m_VSConstantBuffer_tex.world = XMMatrixTranspose(tex_Matrix);
-    m_VSConstantBuffer_tex.worldInvTranspose = XMMatrixTranspose(InverseTranspose(tex_Matrix));
+    tex_phi -= 0.001f;
+    XMMATRIX tex_Matrix = XMMatrixTranslation(-0.5f, -0.5f, 0.0f) * XMMatrixRotationZ(tex_phi) * XMMatrixTranslation(0.5f, 0.5f, 0.0f);
+    m_VSConstantBuffer.tex_rotation = XMMatrixTranspose(tex_Matrix);
 
     /******************************************************************************************************/
     //更新常量缓冲区
