@@ -32,9 +32,6 @@ GameApp::~GameApp()
 
 bool GameApp::Init()
 {
-    m_pMouse = std::make_unique<DirectX::Mouse>();
-    m_pKeyboard = std::make_unique<DirectX::Keyboard>();
-
     if (!D3DApp::Init())
         return false;
 
@@ -43,10 +40,6 @@ bool GameApp::Init()
 
     if (!InitResource())
         return false;
-
-    //将鼠标初始化
-    m_pMouse->SetWindow(m_hMainWnd);
-    m_pMouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
 
     return true;
 }
@@ -58,8 +51,46 @@ void GameApp::OnResize()
 
 void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
 {
-    Keyboard::State state = m_pKeyboard->GetState();
-    m_KeyboardTracker.Update(state);
+    static float phi = 0.0f, theta = 0.0f;
+    static float tex_phi = 0.0f;
+    static float speed = 1.0f, tex_speed = 1.0f;
+    if (ImGui::Begin("Week3"))//创建一个名为"Use ImGui"的窗口
+    {
+        //用Text函数打印操作提示
+        ImGui::Text("Use speed to control rotating speed");
+        ImGui::Text("Use tex_speed to control texture rotating speed");
+        ImGui::Text("Use Mode to set render mode");
+        //使用按钮来重置缩放、旋转、平移
+        if (ImGui::Button("Reset"))
+        {
+            //旋转角度初始化
+            speed = 1.0f;
+            tex_speed = 1.0f;
+        }
+        if (ImGui::Button("Stop"))
+        {
+            //停止旋转
+            speed = 0.0f;
+            tex_speed = 0.0f;
+        }
+        ImGui::SliderFloat("speed", &speed, -2.0f, 2.0f);     // 调节转速
+        ImGui::SliderFloat("tex_speed", &tex_speed, -2.0f, 2.0f);  // 调节纹理转速
+        static int curr_mode_item = static_cast<int>(m_CurrMode);
+        const char* mode_strs[] = {
+            "Surface",
+            "WireFrame"
+        };
+        if (ImGui::Combo("Render Mode", &curr_mode_item, mode_strs, ARRAYSIZE(mode_strs)))
+        {
+            if (curr_mode_item == 0)
+                m_pd3dImmediateContext->RSSetState(nullptr);
+            else
+                m_pd3dImmediateContext->RSSetState(m_pRSWireframe.Get());
+        }
+
+    }
+    //关闭窗口
+    ImGui::End();
 
     // 播放木箱动画
     m_CurrMode = ShowMode::WoodCrate;
@@ -72,14 +103,12 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
 
     ImGui::Render();
 
-    static float phi = 0.0f, theta = 0.0f;
-    phi += 0.0001f, theta += 0.00015f;
+    phi += 0.00015f*speed, theta += 0.00015f*speed;
     XMMATRIX W = XMMatrixRotationX(phi) * XMMatrixRotationY(theta);
     m_VSConstantBuffer.world = XMMatrixTranspose(W);
     m_VSConstantBuffer.worldInvTranspose = XMMatrixTranspose(InverseTranspose(W));
- 
-    static float tex_phi = 0.0f;
-    tex_phi -= 0.001f;
+
+    tex_phi -= 0.001f*tex_speed;
     XMMATRIX tex_Matrix = XMMatrixTranslation(-0.5f, -0.5f, 0.0f) * XMMatrixRotationZ(tex_phi) * XMMatrixTranslation(0.5f, 0.5f, 0.0f);
     m_VSConstantBuffer.tex_rotation = XMMatrixTranspose(tex_Matrix);
 
@@ -233,7 +262,7 @@ bool GameApp::InitResource()
    // 初始化纹理和采样器状态
 
    // 初始化纹理
-   HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\WoodCrate.dds", nullptr, m_pTex.GetAddressOf()));
+   HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\flare.dds", nullptr, m_pTex.GetAddressOf()));
 
     // 初始化采样器状态
     D3D11_SAMPLER_DESC sampDesc;
