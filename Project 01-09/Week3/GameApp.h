@@ -92,6 +92,9 @@ private:
 
     VSConstantBuffer m_VSConstantBuffer;						// 用于修改用于VS的GPU常量缓冲区的变量
     PSConstantBuffer m_PSConstantBuffer;						// 用于修改用于PS的GPU常量缓冲区的变量
+
+    ComPtr<ID3D11RasterizerState> m_pRSWireframe;	// 光栅化状态: 线框模式
+    bool m_IsWireframeMode;							// 当前是否为线框模式
 };
 
 

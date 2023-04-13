@@ -108,7 +108,7 @@ void GameApp::DrawScene()
 
     // 绘制立方体
     m_pd3dImmediateContext->DrawIndexed(m_IndexCount, 0, 0);
-
+    m_pd3dImmediateContext->RSSetState(m_pRSWireframe.Get());
     //ImGui::Render();
     // 下面这句话会触发ImGui在Direct3D的绘制
     // 因此需要在此之前将后备缓冲区绑定到渲染管线上
@@ -128,7 +128,6 @@ bool GameApp::InitEffect()
     //// 创建顶点布局(2D)
     //HR(m_pd3dDevice->CreateInputLayout(VertexPosTex::inputLayout, ARRAYSIZE(VertexPosTex::inputLayout),
     //    blob->GetBufferPointer(), blob->GetBufferSize(), m_pVertexLayout2D.GetAddressOf()));
-
     //// 创建像素着色器(2D)
     //HR(CreateShaderFromFile(L"HLSL\\Basic_PS_2D.cso", L"HLSL\\Basic_PS_2D.hlsl", "PS_2D", "ps_5_0", blob.ReleaseAndGetAddressOf()));
     //HR(m_pd3dDevice->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pPixelShader2D.GetAddressOf()));
@@ -240,16 +239,17 @@ bool GameApp::InitResource()
    // 初始化纹理和采样器状态
 
    // 初始化纹理
-    HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\flare.dds", nullptr, m_pTex.GetAddressOf()));
+   HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\flare.dds", nullptr, m_pTex.GetAddressOf()));
 
     // 初始化采样器状态
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
     //sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sampDesc.Filter = D3D11_FILTER_ANISOTROPIC; // 所选过滤器
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;// U方向寻址模式
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;// V方向寻址模式
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;// W方向寻址模式
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;// U方向寻址模式
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;// V方向寻址模式
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;// W方向寻址模式
+
     sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
@@ -305,7 +305,16 @@ bool GameApp::InitResource()
     memcpy_s(mappedData.pData, sizeof(PSConstantBuffer), &m_PSConstantBuffer, sizeof(PSConstantBuffer));
     m_pd3dImmediateContext->Unmap(m_pConstantBuffers[1].Get(), 0);
 
-
+    // ******************
+    // 初始化光栅化状态
+    //
+    D3D11_RASTERIZER_DESC rasterizerDesc;
+    ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
+    rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;  // 填充模式
+    rasterizerDesc.CullMode = D3D11_CULL_NONE;    // 裁剪模式
+    rasterizerDesc.FrontCounterClockwise = false; // 是否三角形顶点按逆时针排布时为正面
+    rasterizerDesc.DepthClipEnable = true;  // 是否允许深度测试将范围外的像素进行裁剪，默认TRUE
+    HR(m_pd3dDevice->CreateRasterizerState(&rasterizerDesc, m_pRSWireframe.GetAddressOf()));  //创建光栅化状态
 
     // ******************
     // 给渲染管线各个阶段绑定好所需资源
