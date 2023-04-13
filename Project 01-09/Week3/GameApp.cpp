@@ -54,13 +54,12 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
     static float phi = 0.0f, theta = 0.0f;
     static float tex_phi = 0.0f;
     static float speed = 1.0f, tex_speed = 1.0f;
-    if (ImGui::Begin("Week3"))//创建一个名为"Use ImGui"的窗口
+    if (ImGui::Begin("Week3"))
     {
         //用Text函数打印操作提示
         ImGui::Text("Use speed to control rotating speed");
         ImGui::Text("Use tex_speed to control texture rotating speed");
         ImGui::Text("Use Mode to set render mode");
-        //使用按钮来重置缩放、旋转、平移
         if (ImGui::Button("Reset"))
         {
             //旋转角度初始化
