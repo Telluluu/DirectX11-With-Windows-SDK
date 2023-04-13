@@ -71,12 +71,6 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
     m_pd3dImmediateContext->PSSetShaderResources(0, 1, m_pTex.GetAddressOf());
 
     ImGui::Render();
-    //m_pd3dImmediateContext->IASetInputLayout(m_pVertexLayout2D.Get());
-    //auto meshData = Geometry::Create2DShow();
-    //ResetMesh(meshData);
-    //m_pd3dImmediateContext->VSSetShader(m_pVertexShader2D.Get(), nullptr, 0);
-    //m_pd3dImmediateContext->PSSetShader(m_pPixelShader2D.Get(), nullptr, 0);
-    //m_pd3dImmediateContext->PSSetShaderResources(0, 1, m_pFireAnims[0].GetAddressOf());
 
     static float phi = 0.0f, theta = 0.0f;
     phi += 0.0001f, theta += 0.00015f;
@@ -108,7 +102,7 @@ void GameApp::DrawScene()
 
     // 绘制立方体
     m_pd3dImmediateContext->DrawIndexed(m_IndexCount, 0, 0);
-    m_pd3dImmediateContext->RSSetState(m_pRSWireframe.Get());
+    //m_pd3dImmediateContext->RSSetState(m_pRSWireframe.Get());
     //ImGui::Render();
     // 下面这句话会触发ImGui在Direct3D的绘制
     // 因此需要在此之前将后备缓冲区绑定到渲染管线上
@@ -239,16 +233,16 @@ bool GameApp::InitResource()
    // 初始化纹理和采样器状态
 
    // 初始化纹理
-   HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\flare.dds", nullptr, m_pTex.GetAddressOf()));
+   HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"..\\Texture\\WoodCrate.dds", nullptr, m_pTex.GetAddressOf()));
 
     // 初始化采样器状态
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
     //sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sampDesc.Filter = D3D11_FILTER_ANISOTROPIC; // 所选过滤器
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;// U方向寻址模式
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;// V方向寻址模式
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;// W方向寻址模式
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;// U方向寻址模式
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;// V方向寻址模式
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;// W方向寻址模式
 
     sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     sampDesc.MinLOD = 0;
