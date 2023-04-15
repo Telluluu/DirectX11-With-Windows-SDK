@@ -76,7 +76,7 @@ void GameApp::UpdateScene(float dt) //dt为两帧间隔时间
         ImGui::SliderFloat("tex_speed", &tex_speed, -2.0f, 2.0f);  // 调节纹理转速
         static int curr_mode_item = static_cast<int>(m_CurrMode);
         const char* mode_strs[] = {
-            "Surface",
+            "Face",
             "WireFrame"
         };
         if (ImGui::Combo("Render Mode", &curr_mode_item, mode_strs, ARRAYSIZE(mode_strs)))
