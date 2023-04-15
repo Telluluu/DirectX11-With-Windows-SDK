@@ -118,3 +118,4 @@ bool CpuTimer::IsStopped() const
     return m_Stopped;
 }
 
+

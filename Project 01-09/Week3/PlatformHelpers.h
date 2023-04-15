@@ -90,3 +90,4 @@ namespace DirectX
 
     inline HANDLE safe_handle(HANDLE h) noexcept { return (h == INVALID_HANDLE_VALUE) ? nullptr : h; }
 }
+

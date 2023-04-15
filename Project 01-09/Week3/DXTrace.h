@@ -48,3 +48,4 @@ HRESULT WINAPI DXTraceW(_In_z_ const WCHAR* strFile, _In_ DWORD dwLine, _In_ HRE
 
 
 #endif
+
