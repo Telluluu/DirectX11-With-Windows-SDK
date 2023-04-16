@@ -53,7 +53,7 @@ target_link_libraries(Week4 ImGui)
 file(COPY imgui.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Assimp
-set_target_properties(22_Static_Cube_Mapping PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${ASSIMP_LIBRARY_OUTPUT_DIRECTORY}/$<IF:$<CONFIG:Debug>,Debug,Release>")
+set_target_properties(Week4 PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${ASSIMP_LIBRARY_OUTPUT_DIRECTORY}/$<IF:$<CONFIG:Debug>,Debug,Release>")
 
 # Common
 target_link_libraries(Week4 Common)
