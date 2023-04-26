@@ -23,6 +23,7 @@ add_subdirectory("38 Cascaded Shadow Mapping")
 add_subdirectory("39 VSM and ESM")
 add_subdirectory("40 FXAA")
 add_subdirectory("Week4")
+add_subdirectory("FINAL")
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Texture)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Texture DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
