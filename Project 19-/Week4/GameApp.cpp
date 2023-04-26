@@ -103,6 +103,7 @@ void GameApp::UpdateScene(float dt)
         }
         ImGui::Text("Current Object: %s", m_pickedObjStr.c_str());
         ImGui::Text("Current Box: %d", j);
+        ImGui::Text("Double Click Right button to Create\nClick Left button to destroy\n");
     }
 
 
