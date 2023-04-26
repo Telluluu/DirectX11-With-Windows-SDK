@@ -1,7 +1,13 @@
 #include "GameApp.h"
 #include <XUtil.h>
 #include <DXTrace.h>
+#include<locale>
 using namespace DirectX;
+
+//i为当前要创造的立方体编号，最多创建99个立方体
+int i = 0;
+//j为当前选中的立方体编号,j为99意为当前选中为空
+int j = 99;
 
 GameApp::GameApp(HINSTANCE hInstance, const std::wstring& windowName, int initWidth, int initHeight)
     : D3DApp(hInstance, windowName, initWidth, initHeight)
@@ -56,7 +62,6 @@ void GameApp::OnResize()
 void GameApp::UpdateScene(float dt)
 {
     m_CameraController.Update(dt);
-    
 
     // 更新观察矩阵
     m_BasicEffect.SetViewMatrix(m_pCamera->GetViewMatrixXM());
@@ -64,7 +69,7 @@ void GameApp::UpdateScene(float dt)
 
     m_SkyboxEffect.SetViewMatrix(m_pCamera->GetViewMatrixXM());
 
-    if (ImGui::Begin("Skybox"))
+    if (ImGui::Begin("Week4"))
     {
         static int skybox_item = 0;
         static const char* skybox_strs[] = {
@@ -96,7 +101,90 @@ void GameApp::UpdateScene(float dt)
                 break;
             }
         }
+        ImGui::Text("Current Object: %s", m_pickedObjStr.c_str());
+        ImGui::Text("Current Box: %d", j);
     }
+
+
+    ImGuiIO& io = ImGui::GetIO();
+    // ******************
+    // 拾取检测
+    //
+
+    ImVec2 mousePos = ImGui::GetMousePos();
+    mousePos.x = std::clamp(mousePos.x, 0.0f, m_ClientWidth - 1.0f);
+    mousePos.y = std::clamp(mousePos.y, 0.0f, m_ClientHeight - 1.0f);
+
+    Ray ray = Ray::ScreenToRay(*m_pCamera, mousePos.x, mousePos.y);
+
+    m_pickedObjStr = "None";
+    bool hitObject = false;
+
+    //检测当前鼠标拾取的方块
+    for (int temp = 0; temp < 98; temp++)
+    {
+        if (ray.Hit(m_Box[temp].GetBoundingOrientedBox()))
+        {
+            j = temp; //指向当前方块
+            m_pickedObjStr = "Box";
+            hitObject = true;
+            break;
+        }
+        else
+        {
+            j = 99;//代表当前选中为空
+            m_pickedObjStr = "None";
+            hitObject = false;
+        }
+    }
+    if (ray.Hit(m_Sphere.GetBoundingOrientedBox()))
+    {
+        m_pickedObjStr = "Sphere";
+        hitObject = true;
+    }
+    else if (ray.Hit(m_Ground.GetBoundingOrientedBox()))
+    {
+        m_pickedObjStr = "Ground";
+        hitObject = true;
+    }
+    else if (ray.Hit(m_Cylinder.GetBoundingOrientedBox()))
+    {
+        m_pickedObjStr = "Cylinder";
+        hitObject = true;
+    }
+
+
+
+    if (!ImGui::IsAnyItemActive())//当ImGui的UI处于非活跃状态时
+    {
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Right))//双击右键创造方块
+        {
+            Model* MyBox;
+            MyBox = m_ModelManager.CreateFromGeometry("Box", Geometry::CreateBox());
+            MyBox->SetDebugObjectName("Box");
+            m_TextureManager.CreateFromFile("..\\Texture\\bricks.dds");
+            MyBox->materials[0].Set<std::string>("$Diffuse", "..\\Texture\\bricks.dds");
+            MyBox->materials[0].Set<XMFLOAT4>("$AmbientColor", XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f));
+            MyBox->materials[0].Set<XMFLOAT4>("$DiffuseColor", XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
+            MyBox->materials[0].Set<XMFLOAT4>("$SpecularColor", XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f));
+            MyBox->materials[0].Set<float>("$SpecularPower", 16.0f);
+            MyBox->materials[0].Set<XMFLOAT4>("$ReflectColor", XMFLOAT4());
+            m_Box[i].SetModel(std::move(MyBox));
+            m_Box[i].GetTransform().SetPosition(m_pCamera->GetLookAxis().x * 8.0f + m_pCamera->GetPosition().x,
+                m_pCamera->GetLookAxis().y * 8.0f + m_pCamera->GetPosition().y,
+                m_pCamera->GetLookAxis().z * 8.0f + m_pCamera->GetPosition().z); //摄像机方向向量+摄像机位置 = 任意位置放置方块
+            i++;
+            if (i > 98)
+                i = 0;  //防止数组越界
+        }
+        else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))//点击左键销毁方块
+        {
+            m_Box[j].SetVisible(0);//其实只是把这个方块隐藏了
+            m_Box[j].GetTransform().SetPosition(0.0f,-100.0f,0.0f); //把这个方块挪走，防止被选中
+            j = 99;
+        }
+    }
+
     ImGui::End();
     ImGui::Render();
 }
@@ -128,6 +216,12 @@ void GameApp::DrawScene()
     m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     m_Cylinder.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
+    //绘制创建的方块
+    for (int temp = 0; temp < i; temp++)
+    {
+        m_Box[temp].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    }
+
 
     // 绘制天空盒
     m_SkyboxEffect.SetRenderDefault();
@@ -141,6 +235,9 @@ void GameApp::DrawScene()
 
 bool GameApp::InitResource()
 {
+    m_BoundingSphere.Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
+    m_BoundingSphere.Radius = 1.0f;
+
     // ******************
     // 初始化天空盒相关
     

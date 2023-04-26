@@ -42,6 +42,9 @@ private:
     GameObject m_Ground;										// 地面
     GameObject m_Cylinder;									    // 圆柱
     GameObject m_Skybox;                                        // 天空盒
+    GameObject m_Box[100];                                      //放置的方块
+    DirectX::BoundingSphere m_BoundingSphere;				    // 球的包围盒
+    std::string m_pickedObjStr;	                            // 已经拾取的对象名
 
     std::shared_ptr<FirstPersonCamera> m_pCamera;			    // 摄像机
     FirstPersonCameraController m_CameraController;             // 摄像机控制器 
