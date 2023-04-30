@@ -13,6 +13,7 @@
 #include <Collision.h>
 #include <ModelManager.h>
 #include <TextureManager.h>
+#include "ParticleManager.h"
 
 class GameApp : public D3DApp
 {
@@ -25,27 +26,39 @@ public:
     void UpdateScene(float dt);
     void DrawScene();
 
+    // 摄像机模式
+    enum class CameraMode { FirstPerson, ThirdPerson, Free };
 private:
     bool InitResource();
-    
+    void CreateRandomTrees();
+
 private:
 
     TextureManager m_TextureManager;
     ModelManager m_ModelManager;
 
-    BasicEffect m_BasicEffect;		            			    // 对象渲染特效管理
-    SkyboxEffect m_SkyboxEffect;							    // 天空盒特效管理
+    std::unique_ptr<Depth2D> m_pDepthTexture;                           // 深度缓冲区
 
-    std::unique_ptr<Depth2D> m_pDepthTexture;                   // 深度缓冲区
+    GameObject m_Fence;                                                  //护栏
+    GameObject m_Car;                                                   //汽车
+    GameObject m_Trees;										            // 树
+    GameObject m_Ground;										        // 地面                 
+    std::unique_ptr<Buffer> m_pInstancedBuffer;                         // 树的实例缓冲区
+    GameObject m_Skybox;                                                // 天空盒
+    ParticleManager m_Rain;                                             // 雨水粒子系统
+    ParticleManager m_Fire;                                             // 火焰粒子系统
 
-    GameObject m_Sphere;										// 球
-    GameObject m_Ground;										// 地面
-    GameObject m_Cylinder;									    // 圆柱
-    GameObject m_Skybox;                                        // 天空盒
-    GameObject m_Car;
+    BasicEffect m_BasicEffect;								            // 对象渲染特效管理
+    SkyboxEffect m_SkyboxEffect;                                        // 天空盒特效
+    ParticleEffect m_RainEffect;                                        // 雨水特效
+    ParticleEffect m_FireEffect;                                        // 火焰特效
 
-    std::shared_ptr<FirstPersonCamera> m_pCamera;			    // 摄像机
-    FirstPersonCameraController m_CameraController;             // 摄像机控制器 
+    std::unique_ptr<Texture2D> m_pLitTexture;                           // 中间场景缓冲区
+
+    std::shared_ptr<Camera> m_pCamera;				                    // 摄像机
+    FirstPersonCameraController m_CameraController;                     // 摄像机控制器
+    CameraMode m_CameraMode;								        	// 摄像机模式
+
 };
 
 
