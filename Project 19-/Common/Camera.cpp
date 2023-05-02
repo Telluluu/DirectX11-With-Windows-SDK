@@ -212,6 +212,28 @@ ThirdPersonCamera::~ThirdPersonCamera()
 {
 }
 
+void ThirdPersonCamera::SetPosition(float x, float y, float z)
+{
+    SetPosition(XMFLOAT3(x, y, z));
+}
+
+void ThirdPersonCamera::SetPosition(const XMFLOAT3& pos)
+{
+    m_Transform.SetPosition(pos);
+}
+
+void ThirdPersonCamera::LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up)
+{
+    m_Transform.SetPosition(pos);
+    m_Transform.LookAt(target, up);
+}
+
+void ThirdPersonCamera::LookTo(const XMFLOAT3& pos, const XMFLOAT3& to, const XMFLOAT3& up)
+{
+    m_Transform.SetPosition(pos);
+    m_Transform.LookTo(to, up);
+}
+
 XMFLOAT3 ThirdPersonCamera::GetTargetPosition() const
 {
     return m_Target;

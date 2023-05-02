@@ -126,6 +126,12 @@ public:
     ThirdPersonCamera() = default;
     ~ThirdPersonCamera() override;
 
+    // 设置摄像机位置
+    void SetPosition(float x, float y, float z);
+    void SetPosition(const DirectX::XMFLOAT3& pos);
+    // 设置摄像机的朝向
+    void LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
+    void LookTo(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& to, const DirectX::XMFLOAT3& up);
     // 获取当前跟踪物体的位置
     DirectX::XMFLOAT3 GetTargetPosition() const;
     // 获取与物体的距离
