@@ -41,13 +41,16 @@ private:
 
     GameObject m_Fence;                                                  //护栏
     GameObject m_Car;                                                   //汽车
+    GameObject m_CarWheelFL;                                            //汽车左前轮(front-left)
+    GameObject m_CarWheelFR;                                            //汽车右前轮(front-right)
+    GameObject m_CarWheelR;                                             //汽车后轮(rear wheels)
     GameObject m_Trees;										            // 树
     GameObject m_Ground;										        // 地面                 
     std::unique_ptr<Buffer> m_pInstancedBuffer;                         // 树的实例缓冲区
     GameObject m_Skybox;                                                // 天空盒
     ParticleManager m_Rain;                                             // 雨水粒子系统
     ParticleManager m_Fire;                                             // 火焰粒子系统
-
+    SpotLight spotLight[2];                                             //车前灯
     BasicEffect m_BasicEffect;								            // 对象渲染特效管理
     SkyboxEffect m_SkyboxEffect;                                        // 天空盒特效
     ParticleEffect m_RainEffect;                                        // 雨水特效
