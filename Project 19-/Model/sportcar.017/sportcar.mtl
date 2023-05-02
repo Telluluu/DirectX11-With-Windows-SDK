@@ -1,0 +1,35 @@
+# Blender 3.5.1 MTL File: 'sportcar.017.blend'
+# www.blender.org
+
+newmtl Body
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd sportcar.017_Body_BaseColor.png
+map_Ns sportcar.017_Body_Roughness.png
+map_refl sportcar.017_Body_Metallic.png
+
+newmtl Glass
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 9
+map_Kd sportcar.017_Glass_BaseColor.png
+map_Ns sportcar.017_Glass_Roughness.png
+map_refl sportcar.017_Glass_Metallic.png
+map_d sportcar.017_Glass_BaseColor.png
+
+newmtl Interior
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd sportcar.017_Interior_BaseColor.png
+map_Ns sportcar.017_Interior_Roughness.png
+map_refl sportcar.017_Interior_Metallic.png
