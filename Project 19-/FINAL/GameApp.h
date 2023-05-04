@@ -31,6 +31,7 @@ public:
 private:
     bool InitResource();
     void CreateRandomTrees();
+    void CreateGuardrails();
 
 private:
 
@@ -39,7 +40,8 @@ private:
 
     std::unique_ptr<Depth2D> m_pDepthTexture;                           // 深度缓冲区
 
-    GameObject m_Fence;                                                  //护栏
+    GameObject m_Guardrail;                                                 //护栏
+    GameObject m_StreetLamp;                                             //路灯
     GameObject m_Car;                                                   //汽车
     GameObject m_CarWheelFL;                                            //汽车左前轮(front-left)
     GameObject m_CarWheelFR;                                            //汽车右前轮(front-right)

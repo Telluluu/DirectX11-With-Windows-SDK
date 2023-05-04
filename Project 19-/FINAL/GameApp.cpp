@@ -238,103 +238,102 @@ void GameApp::UpdateScene(float dt)
                         isDrift = 1;
                     }
                 }
-if (ImGui::IsKeyDown(ImGuiKey_D))
-{
-    theta = 0.001f;
-    nowTheta += theta;
-    // 前轮旋转角度不大于40°
-    if (nowTheta < (6.28f / 9.0))
-    {
-        carWheelFL.RotateAround(carWheelFLBox.Center, carTransform.GetUpAxis(), theta);
-        carWheelFR.RotateAround(carWheelFRBox.Center, carTransform.GetUpAxis(), theta);
-    }
+                if (ImGui::IsKeyDown(ImGuiKey_D))
+                {
+                    theta = 0.001f;
+                    nowTheta += theta;
+                    // 前轮旋转角度不大于40°
+                    if (nowTheta < (6.28f / 9.0))
+                    {
+                        carWheelFL.RotateAround(carWheelFLBox.Center, carTransform.GetUpAxis(), theta);
+                        carWheelFR.RotateAround(carWheelFRBox.Center, carTransform.GetUpAxis(), theta);
+                    }
 
-    if (speed > 0 && !ImGui::IsKeyDown(ImGuiKey_F))
-    {
-        carTransform.RotateAxis(carTransform.GetUpAxis(), theta / 2.0f);
-        carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), theta / 2.0f);
-        carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), theta / 2.0f);
-        carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), theta / 2.0f);
-    }
-    else if (speed < 0 && !ImGui::IsKeyDown(ImGuiKey_F))
-    {
-        carTransform.RotateAxis(carTransform.GetUpAxis(), -theta / 2.0f);
-        carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -theta / 2.0f);
-        carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -theta / 2.0f);
-        carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -theta / 2.0f);
-    }
-    if (ImGui::IsKeyDown(ImGuiKey_F))
-    {
-        if (speed > 0)
-        {
-            speed = 0.01f;
-            carTransform.RotateAxis(carTransform.GetUpAxis(), 0.002f);
-            carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), 0.002f);
-            carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), 0.002f);
-            carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), 0.002f);
-        }
-        else if (speed < 0)
-        {
-            speed = -0.01f;
-            carTransform.RotateAxis(carTransform.GetUpAxis(), -0.002f);
-            carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -0.002f);
-            carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -0.002f);
-            carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -0.002f);
-        }
-        isDrift = 1;
-    }
-}
-//松开A/D键时，前轮旋转复原
-if (ImGui::IsKeyReleased(ImGuiKey_A) || ImGui::IsKeyReleased(ImGuiKey_D))
-{
-    carWheelFL.SetRotation(carTransform.GetRotation());
-    carWheelFR.SetRotation(carTransform.GetRotation());
-    carWheelFL.SetPosition(carTransform.GetPosition());
-    carWheelFR.SetPosition(carTransform.GetPosition());
-    nowTheta = 0.0f;
-}
+                    if (speed > 0 && !ImGui::IsKeyDown(ImGuiKey_F))
+                    {
+                        carTransform.RotateAxis(carTransform.GetUpAxis(), theta / 2.0f);
+                        carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), theta / 2.0f);
+                        carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), theta / 2.0f);
+                        carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), theta / 2.0f);
+                    }
+                    else if (speed < 0 && !ImGui::IsKeyDown(ImGuiKey_F))
+                    {
+                        carTransform.RotateAxis(carTransform.GetUpAxis(), -theta / 2.0f);
+                        carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -theta / 2.0f);
+                        carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -theta / 2.0f);
+                        carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -theta / 2.0f);
+                    }
+                    if (ImGui::IsKeyDown(ImGuiKey_F))
+                    {
+                        if (speed > 0)
+                        {
+                            speed = 0.01f;
+                            carTransform.RotateAxis(carTransform.GetUpAxis(), 0.002f);
+                            carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), 0.002f);
+                            carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), 0.002f);
+                            carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), 0.002f);
+                        }
+                        else if (speed < 0)
+                        {
+                            speed = -0.01f;
+                            carTransform.RotateAxis(carTransform.GetUpAxis(), -0.002f);
+                            carWheelR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -0.002f);
+                            carWheelFL.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -0.002f);
+                            carWheelFR.RotateAround(carTransform.GetPosition(), carTransform.GetUpAxis(), -0.002f);
+                        }
+                        isDrift = 1;
+                    }
+                }
+                //松开A/D键时，前轮旋转复原
+                if (ImGui::IsKeyReleased(ImGuiKey_A) || ImGui::IsKeyReleased(ImGuiKey_D))
+                {
+                    carWheelFL.SetRotation(carTransform.GetRotation());
+                    carWheelFR.SetRotation(carTransform.GetRotation());
+                    carWheelFL.SetPosition(carTransform.GetPosition());
+                    carWheelFR.SetPosition(carTransform.GetPosition());
+                    nowTheta = 0.0f;
+                }
 
-//松开刹车时，W/S键控制汽车加速度
-if (!ImGui::IsKeyDown(ImGuiKey_Space))
-{
-    if (ImGui::IsKeyDown(ImGuiKey_W) || (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
-        if (speed > 0)
-            accerelation = 0.000002f;
-        else accerelation = 0.000004f;
-    if (ImGui::IsKeyDown(ImGuiKey_S))
-        if (speed < 0)
-            accerelation = -0.000002f;
-        else accerelation = -0.000004f;
-}
-speed += accerelation;
-speed = std::clamp(speed, -0.05f, 0.05f);
-if (ImGui::IsKeyReleased(ImGuiKey_F) && isDrift)
-{
-    if (speed > 0)
-        speed = 0.03f;
-    if (speed < 0)
-        speed = 0.03f;
-    isDrift = 0;
-}
-//空格刹车
-if (ImGui::IsKeyDown(ImGuiKey_Space) && speed != 0.0f)
-{
-    if (speed > 0.00002f)
-        accerelation = -0.00002f;
-    else if (speed < -0.00002f)
-        accerelation = 0.00002f;
-    speed += accerelation;
-    if ((speed >= -0.00002f) && (speed <= 0.00002f))
-        speed = 0.0f;
-}
+                //松开刹车时，W/S键控制汽车加速度
+                if (!ImGui::IsKeyDown(ImGuiKey_Space))
+                {
+                    if (ImGui::IsKeyDown(ImGuiKey_W) || (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
+                        if (speed > 0)
+                            accerelation = 0.000002f;
+                        else accerelation = 0.000004f;
+                    if (ImGui::IsKeyDown(ImGuiKey_S))
+                        if (speed < 0)
+                            accerelation = -0.000002f;
+                        else accerelation = -0.000004f;
+                }
+                speed += accerelation;
+                speed = std::clamp(speed, -0.05f, 0.05f);
+                if (ImGui::IsKeyReleased(ImGuiKey_F) && isDrift)
+                {
+                    //漂移可以获得向前的加速度，若倒车时漂移就没有加速度了
+                    if (speed > 0)
+                        speed = 0.03f;
+                    isDrift = 0;
+                }
+                //空格刹车
+                if (ImGui::IsKeyDown(ImGuiKey_Space) && speed != 0.0f)
+                {
+                    if (speed > 0.00002f)
+                        accerelation = -0.00002f;
+                    else if (speed < -0.00002f)
+                        accerelation = 0.00002f;
+                    speed += accerelation;
+                    if ((speed >= -0.00002f) && (speed <= 0.00002f))
+                        speed = 0.0f;
+                }
 
 
-//进行玩旋转操作后再平移，防止物体变形
-//汽车车身、前后轮在速度方向上平移
-carTransform.Translate(carTransform.GetForwardAxis(), -speed);
-carWheelFL.Translate(carTransform.GetForwardAxis(), -speed);
-carWheelFR.Translate(carTransform.GetForwardAxis(), -speed);
-carWheelR.Translate(carTransform.GetForwardAxis(), -speed);
+                //进行玩旋转操作后再平移，防止物体变形
+                //汽车车身、前后轮在速度方向上平移
+            carTransform.Translate(carTransform.GetForwardAxis(), -speed);
+            carWheelFL.Translate(carTransform.GetForwardAxis(), -speed);
+            carWheelFR.Translate(carTransform.GetForwardAxis(), -speed);
+            carWheelR.Translate(carTransform.GetForwardAxis(), -speed);
             }
 
             //车前灯
@@ -490,6 +489,7 @@ void GameApp::DrawScene()
     //
     
     float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    //清空深度/模板缓冲区和渲染目标视图
     m_pd3dImmediateContext->ClearRenderTargetView(m_pLitTexture->GetRenderTarget(), black);
     m_pd3dImmediateContext->ClearDepthStencilView(m_pDepthTexture->GetDepthStencil(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     ID3D11RenderTargetView* pRTVs[]{ m_pLitTexture->GetRenderTarget() };
@@ -497,18 +497,39 @@ void GameApp::DrawScene()
     D3D11_VIEWPORT vp = m_pCamera->GetViewPort();
     m_pd3dImmediateContext->RSSetViewports(1, &vp);
 
-    ////绘制树木
-    //m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Trees, 144);
-    
-    // 绘制地面
-    m_BasicEffect.SetRenderDefault();
-    m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-    
+
+
+    m_BasicEffect.SetRenderDefault();    
+    // ******************
+    // 1. 给镜面反射区域写入值1到模板缓冲区
+    // 
+
+    // 裁剪掉背面三角形
+    // 标记镜面区域的模板值为1
+    // 不写入像素颜色
+    m_pd3dImmediateContext->RSSetState(nullptr);
+    m_pd3dImmediateContext->OMSetDepthStencilState(RenderStates::DSSWriteStencil.Get(), 1);
+    m_pd3dImmediateContext->OMSetBlendState(RenderStates::BSNoColorWrite.Get(), nullptr, 0xFFFFFFFF);
     //绘制汽车
     m_Car.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
+    // ******************
+    // 2. 绘制不透明的反射物体
+    //
+
+    // 开启反射绘制
+
+
     m_CarWheelFL.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     m_CarWheelFR.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     m_CarWheelR.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
+
+    ////绘制树木
+    //m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Trees, 144);
+    m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Guardrail, 20);
+    //// 绘制地面
+    m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     // ******************
     // 绘制天空盒
     //
@@ -526,7 +547,7 @@ void GameApp::DrawScene()
     // ******************
     // 粒子系统留在最后绘制便于混合
     
-    //m_pd3dImmediateContext->OMSetRenderTargets(1, pRTVs, m_pDepthTexture->GetDepthStencil());
+    m_pd3dImmediateContext->OMSetRenderTargets(1, pRTVs, m_pDepthTexture->GetDepthStencil());
     //m_Fire.Draw(m_pd3dImmediateContext.Get(), m_FireEffect);
     //m_Rain.Draw(m_pd3dImmediateContext.Get(), m_RainEffect);
 
@@ -572,7 +593,7 @@ bool GameApp::InitResource()
     // ******************
     // 初始化游戏对象
     //
-
+    
     // 初始化汽车
     Model* pModel = m_ModelManager.CreateFromFile("..\\Model\\sportcar.017\\sportcar.obj");
     m_Car.SetModel(pModel);
@@ -608,11 +629,19 @@ bool GameApp::InitResource()
 
     // 创建随机的树
     CreateRandomTrees();
+    //创建护栏
+    CreateGuardrails();
 
     // 初始化地面
     pModel = m_ModelManager.CreateFromFile("..\\Model\\ground_35.obj");
     pModel->SetDebugObjectName("Ground");
     m_Ground.SetModel(pModel);
+
+    pModel = m_ModelManager.CreateFromFile("..\\Model\\Street Lamp\\StreetLamp.3ds");
+    pModel->SetDebugObjectName("StreetLamp");
+    m_StreetLamp.SetModel(pModel);
+    Transform& streetLamp = m_StreetLamp.GetTransform();
+    streetLamp.RotateAxis(XMFLOAT3(0.0f, 1.0f, 0.0f), 3.14f / 2);
 
     // 天空盒
     {
@@ -700,6 +729,61 @@ bool GameApp::InitResource()
         m_BasicEffect.SetSpotLight(i, spotLight[i]);
 
     return true;
+}
+
+void GameApp::CreateGuardrails()
+{
+    // 初始化护栏
+    Model* pModel = m_ModelManager.CreateFromFile("..\\Model\\Guardrail\\Guardrail2.obj");
+    pModel->SetDebugObjectName("Guardrail");
+    m_Guardrail.SetModel(pModel);
+    XMMATRIX S = XMMatrixScaling(0.02f, 0.02f, 0.02f);
+
+    BoundingBox guardrailBox = m_Guardrail.GetModel()->boundingbox;
+
+    // 让护栏底部紧贴地面位于y = -2的平面
+    guardrailBox.Transform(guardrailBox, S);
+    float Ty = -(guardrailBox.Center.y - guardrailBox.Extents.y + 2.0f);
+    // 随机生成144颗随机朝向的树
+    std::vector<BasicEffect::InstancedData> treeData(144);
+    m_pInstancedBuffer = std::make_unique<Buffer>(m_pd3dDevice.Get(),
+        CD3D11_BUFFER_DESC(sizeof(BasicEffect::InstancedData) * 144, D3D11_BIND_VERTEX_BUFFER,
+            D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE));
+    m_pInstancedBuffer->SetDebugObjectName("InstancedBuffer");
+
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_real<float> radiusNormDist(0.0f, 30.0f);
+    std::uniform_real<float> normDist;
+    float theta = 0.0f;
+    int pos = 0;
+    Transform transform;
+    transform.SetScale(0.02f, 0.02f, 0.02f);
+    for (int i = 0; i < 16; ++i)
+    {
+        // 取5-95的半径放置随机的树
+        for (int j = 0; j < 3; ++j)
+        {
+            // 距离越远，树木越多
+            for (int k = 0; k < 2 * j + 1; ++k, ++pos)
+            {
+                float radius = (float)(radiusNormDist(rng) + 30 * j + 5);
+                float randomRad = normDist(rng) * XM_2PI / 16;
+                transform.SetRotation(0.0f, normDist(rng) * XM_2PI, 0.0f);
+                transform.SetPosition(radius * cosf(theta + randomRad), Ty, radius * sinf(theta + randomRad));
+
+                XMStoreFloat4x4(&treeData[pos].world,
+                    XMMatrixTranspose(transform.GetLocalToWorldMatrixXM()));
+                XMStoreFloat4x4(&treeData[pos].worldInvTranspose,
+                    XMMatrixTranspose(XMath::InverseTranspose(transform.GetLocalToWorldMatrixXM())));
+            }
+        }
+        theta += XM_2PI / 16;
+    }
+
+    memcpy_s(m_pInstancedBuffer->MapDiscard(m_pd3dImmediateContext.Get()), m_pInstancedBuffer->GetByteWidth(),
+        treeData.data(), treeData.size() * sizeof(BasicEffect::InstancedData));
+    m_pInstancedBuffer->Unmap(m_pd3dImmediateContext.Get());
 }
 
 void GameApp::CreateRandomTrees()
