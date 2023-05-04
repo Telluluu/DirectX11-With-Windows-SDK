@@ -1,0 +1,35 @@
+# Blender 3.5.1 MTL File: 'None'
+# www.blender.org
+
+newmtl Concrete
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd Concrete Texture.jpg
+map_Bump Concrete Texture.jpg
+
+newmtl Concrete_Block
+Ns 10.000005
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd RoadsBarriers0005_M.jpg
+map_Bump RoadsBarriers0005_M.jpg
+
+newmtl Dirt_Block
+Ns 10.000005
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd RoadsBarrier.jpg
+map_Bump RoadsBarrier.jpg
