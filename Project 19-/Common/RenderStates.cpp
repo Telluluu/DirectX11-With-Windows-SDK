@@ -20,6 +20,7 @@ ComPtr<ID3D11SamplerState> RenderStates::SSAnistropicClamp16x   = nullptr;
 ComPtr<ID3D11SamplerState> RenderStates::SSShadowPCF			= nullptr;
 
 ComPtr<ID3D11BlendState> RenderStates::BSAlphaToCoverage		= nullptr;
+ComPtr<ID3D11BlendState> RenderStates::BSNoColorWrite           = nullptr;
 ComPtr<ID3D11BlendState> RenderStates::BSTransparent			= nullptr;
 ComPtr<ID3D11BlendState> RenderStates::BSAdditive				= nullptr;
 ComPtr<ID3D11BlendState> RenderStates::BSAlphaWeightedAdditive  = nullptr;

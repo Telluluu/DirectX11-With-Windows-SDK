@@ -43,6 +43,7 @@ public:
     static ComPtr<ID3D11SamplerState> SSAnistropicClamp16x;		        // 采样器状态：16倍各向异性过滤与Clamp模式
     static ComPtr<ID3D11SamplerState> SSShadowPCF;						// 采样器状态：深度比较与Border模式
 
+    static ComPtr<ID3D11BlendState> BSNoColorWrite;		                // 混合状态：不写入颜色
     static ComPtr<ID3D11BlendState> BSTransparent;		                // 混合状态：透明混合
     static ComPtr<ID3D11BlendState> BSAlphaToCoverage;	                // 混合状态：Alpha-To-Coverage
     static ComPtr<ID3D11BlendState> BSAdditive;			                // 混合状态：加法混合
