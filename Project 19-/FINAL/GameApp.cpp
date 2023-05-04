@@ -375,7 +375,7 @@ void GameApp::UpdateScene(float dt)
             ImGui::Text("Now is 1st p.p.");
         else if(m_pCamera==cam3rd)
             ImGui::Text("Now is 3rd p.p.");
-        ImGui::Text("WSAD to control movement\nSpace to stop\nF to drift\n");
+        ImGui::Text("WSAD to control movement\nSpace to stop\nF to drift\nQ/E to use light\n");
         if (ImGui::Button("Reset Particle"))
         {
             m_Fire.Reset();
