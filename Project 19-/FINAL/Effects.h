@@ -72,6 +72,9 @@ public:
     // 默认状态来绘制
     void SetRenderDefault();
 
+    // 带法线贴图的绘制
+    void SetRenderWithNormalMap();
+
     // 绘制实例
     void DrawInstanced(ID3D11DeviceContext* deviceContext, Buffer& instancedBuffer, const GameObject& object, uint32_t numObjects);
 

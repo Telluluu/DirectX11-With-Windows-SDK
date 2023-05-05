@@ -7,7 +7,8 @@ using namespace DirectX;
 
 GameApp::GameApp(HINSTANCE hInstance, const std::wstring& windowName, int initWidth, int initHeight)
     : D3DApp(hInstance, windowName, initWidth, initHeight),
-    m_CameraMode(CameraMode::FirstPerson)
+    m_CameraMode(CameraMode::FirstPerson),
+    m_EnableNormalMap(false)
 {
 }
 
@@ -68,7 +69,7 @@ void GameApp::OnResize()
 
 void GameApp::UpdateScene(float dt)
 {
-    // 获取子类
+    //获取摄像机子类
     auto cam1st = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
     auto cam3rd = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 
@@ -77,11 +78,20 @@ void GameApp::UpdateScene(float dt)
     Transform& carWheelFR = m_CarWheelFR.GetTransform();
     Transform& carWheelR = m_CarWheelR.GetTransform();
 
+    //获取护栏碰撞盒
+    BoundingOrientedBox blockBox[4];
+    for (int temp = 0; temp < 4; temp++)
+    {
+        blockBox[temp] = m_Block[temp].GetBoundingOrientedBox();
+        blockBox[temp].Extents.x = blockBox[temp].Extents.x * 1500.0f;
+        blockBox[temp].Extents.z = blockBox[temp].Extents.z * 10.0f;
+    }
+  
     //获取碰撞盒，用于后续车辆旋转操作（obj中车辆原点不为几何中心）
-    BoundingBox carBox = m_Car.GetBoundingBox();
-    BoundingBox carWheelFLBox = m_CarWheelFL.GetBoundingBox();
-    BoundingBox carWheelFRBox = m_CarWheelFR.GetBoundingBox();
-    BoundingBox carWheelRBox = m_CarWheelR.GetBoundingBox();
+    BoundingOrientedBox carBox = m_Car.GetBoundingOrientedBox();
+    BoundingOrientedBox carWheelFLBox = m_CarWheelFL.GetBoundingOrientedBox();
+    BoundingOrientedBox carWheelFRBox = m_CarWheelFR.GetBoundingOrientedBox();
+    BoundingOrientedBox carWheelRBox = m_CarWheelR.GetBoundingOrientedBox();
     XMFLOAT3 wheelFrontMid =XMFLOAT3((carWheelFLBox.Center.x + carWheelFRBox.Center.x) / 2, (carWheelFLBox.Center.y + carWheelFRBox.Center.y) / 2, (carWheelFLBox.Center.z + carWheelFRBox.Center.z) / 2);
     //获取小车后上方位置，便于调整视角
     Transform carPos = carTransform;
@@ -295,19 +305,36 @@ void GameApp::UpdateScene(float dt)
                 }
 
                 //松开刹车时，W/S键控制汽车加速度
-                if (!ImGui::IsKeyDown(ImGuiKey_Space))
-                {
-                    if (ImGui::IsKeyDown(ImGuiKey_W) || (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
-                        if (speed > 0)
-                            accerelation = 0.000002f;
-                        else accerelation = 0.000004f;
-                    if (ImGui::IsKeyDown(ImGuiKey_S))
-                        if (speed < 0)
-                            accerelation = -0.000002f;
-                        else accerelation = -0.000004f;
-                }
-                speed += accerelation;
-                speed = std::clamp(speed, -0.05f, 0.05f);
+                for (int temp = 0; temp < 4; temp++)
+                    if (!carBox.Intersects(blockBox[temp]))
+                    {
+                        if (!ImGui::IsKeyDown(ImGuiKey_Space))
+                        {
+                            if (ImGui::IsKeyDown(ImGuiKey_W) || (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
+                                if (speed > 0)
+                                    accerelation = 0.000002f;
+                                else accerelation = 0.000004f;
+                            if (ImGui::IsKeyDown(ImGuiKey_S))
+                                if (speed < 0)
+                                    accerelation = -0.000002f;
+                                else accerelation = -0.000004f;
+                        }
+                        //speed += accerelation;
+                        speed = std::clamp(speed, -0.05f, 0.05f);
+                    }
+                    else
+                    {
+                        //accerelation = -accerelation;
+                        if (speed >= 0.005f || speed <= -0.005f)
+                        {
+                            speed = -speed;
+                            accerelation = -speed / std::abs(speed) * accerelation;
+                        }
+                        else if (speed > 0)
+                            speed = -0.005f;
+                        else if (speed < 0)
+                            speed = 0.005f;
+                    }
                 if (ImGui::IsKeyReleased(ImGuiKey_F) && isDrift)
                 {
                     //漂移可以获得向前的加速度，若倒车时漂移就没有加速度了
@@ -315,6 +342,7 @@ void GameApp::UpdateScene(float dt)
                         speed = 0.03f;
                     isDrift = 0;
                 }
+
                 //空格刹车
                 if (ImGui::IsKeyDown(ImGuiKey_Space) && speed != 0.0f)
                 {
@@ -327,13 +355,15 @@ void GameApp::UpdateScene(float dt)
                         speed = 0.0f;
                 }
 
+                speed += accerelation;
+                speed = std::clamp(speed, -0.1f, 0.1f);
 
                 //进行玩旋转操作后再平移，防止物体变形
                 //汽车车身、前后轮在速度方向上平移
-            carTransform.Translate(carTransform.GetForwardAxis(), -speed);
-            carWheelFL.Translate(carTransform.GetForwardAxis(), -speed);
-            carWheelFR.Translate(carTransform.GetForwardAxis(), -speed);
-            carWheelR.Translate(carTransform.GetForwardAxis(), -speed);
+                carTransform.Translate(carTransform.GetForwardAxis(), -speed);
+                carWheelFL.Translate(carTransform.GetForwardAxis(), -speed);
+                carWheelFR.Translate(carTransform.GetForwardAxis(), -speed);
+                carWheelR.Translate(carTransform.GetForwardAxis(), -speed);
             }
 
             //车前灯
@@ -376,6 +406,7 @@ void GameApp::UpdateScene(float dt)
         else if(m_pCamera==cam3rd)
             ImGui::Text("Now is 3rd p.p.");
         ImGui::Text("WSAD to control movement\nSpace to stop\nF to drift\nQ/E to use light\n");
+        ImGui::Checkbox("Enable Normalmap", &m_EnableNormalMap);
         if (ImGui::Button("Reset Particle"))
         {
             m_Fire.Reset();
@@ -527,9 +558,21 @@ void GameApp::DrawScene()
 
     ////绘制树木
     //m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Trees, 144);
-    m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Guardrail, 20);
-    //// 绘制地面
+    m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Guardrail, 360);
+    //绘制地面
+    if (m_EnableNormalMap)
+        m_BasicEffect.SetRenderWithNormalMap();
+    else
+        m_BasicEffect.SetRenderDefault();
     m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    //绘制公路
+    m_Road.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
+    //绘制空气墙
+    m_BasicEffect.SetRenderDefault();
+    for(int temp=0;temp<4;temp++)
+        m_Block[temp].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
     // ******************
     // 绘制天空盒
     //
@@ -637,11 +680,60 @@ bool GameApp::InitResource()
     pModel->SetDebugObjectName("Ground");
     m_Ground.SetModel(pModel);
 
+
+    //初始化公路
+    pModel = m_ModelManager.CreateFromGeometry("Road", Geometry::CreatePlane(20.0f,1000.0f));
+    pModel->SetDebugObjectName("Road");
+    m_TextureManager.AddTexture("Road_8k", m_TextureManager.CreateFromFile("..\\Texture\\Road_8k.jpg"));
+    m_TextureManager.AddTexture("Road_8kN", m_TextureManager.CreateFromFile("..\\Texture\\Road_8k_nmap.png"));
+    pModel->materials[0].Set<std::string>("$Diffuse", "..\\Texture\\Road_8k.jpg");
+    pModel->materials[0].Set<std::string>("$Normal", "..\\Texture\\Road_8k_nmap.png");
+    pModel->materials[0].Set<XMFLOAT4>("$AmbientColor", XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f));
+    pModel->materials[0].Set<XMFLOAT4>("$DiffuseColor", XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
+    pModel->materials[0].Set<XMFLOAT4>("$SpecularColor", XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f));
+    pModel->materials[0].Set<float>("$SpecularPower", 16.0f);
+    pModel->materials[0].Set<XMFLOAT4>("$ReflectColor", XMFLOAT4());
+    m_Road.GetTransform().Translate(XMFLOAT3(0.0f, 1.0f, 0.0f), -1.99f);
+    m_Road.SetModel(pModel);
+
+
+
+    //初始化路灯
     pModel = m_ModelManager.CreateFromFile("..\\Model\\Street Lamp\\StreetLamp.3ds");
     pModel->SetDebugObjectName("StreetLamp");
     m_StreetLamp.SetModel(pModel);
     Transform& streetLamp = m_StreetLamp.GetTransform();
     streetLamp.RotateAxis(XMFLOAT3(0.0f, 1.0f, 0.0f), 3.14f / 2);
+
+    //初始化空气墙Block
+    for (int i = 0; i < 2; i++)
+    {
+        static float sign = 1.0f;
+        pModel = m_ModelManager.CreateFromGeometry("Blocks", Geometry::CreatePlane(20.0f,40.0f,1.0f));
+        pModel->SetDebugObjectName("BlockZ");
+        float j = 500.0f;
+        m_Block[i].SetModel(pModel);
+        m_Block[i].GetTransform().RotateAxis(XMFLOAT3(1.0f, 0.0f, 0.0f), (3.1415925f / 2.0f));
+        m_Block[i].GetTransform().Translate(XMFLOAT3(0.0f, 0.0f, 1.0f), sign*j);
+        m_Block[i].SetVisible(0);
+        j = -j;
+        sign = -sign;
+    }
+    for (int i = 2; i < 4; i++)
+    {
+        static float sign = 1.0f;
+        pModel = m_ModelManager.CreateFromGeometry("Block", Geometry::CreatePlane(1000.0f,40.0f,1.0f));
+        pModel->SetDebugObjectName("BlockX");
+        float j = 10.0f;
+        m_Block[i].SetModel(pModel);
+        m_Block[i].GetTransform().RotateAxis(XMFLOAT3(0.0f, 0.0f, 1.0f), (sign* 3.1415925f / 2.0f));
+        m_Block[i].GetTransform().RotateAxis(XMFLOAT3(1.0f, 0.0f, .0f), (3.1415925f / 2.0f));
+        m_Block[i].GetTransform().Translate(XMFLOAT3(1.0f, 0.0f, 0.0f), sign*j);
+        m_Block[i].SetVisible(0);
+
+        j = -j;
+        sign = -sign;
+    }
 
     // 天空盒
     {
@@ -734,55 +826,42 @@ bool GameApp::InitResource()
 void GameApp::CreateGuardrails()
 {
     // 初始化护栏
-    Model* pModel = m_ModelManager.CreateFromFile("..\\Model\\Guardrail\\Guardrail2.obj");
+    Model* pModel = m_ModelManager.CreateFromFile("..\\Model\\Guardrail\\Guardrail3.obj");
     pModel->SetDebugObjectName("Guardrail");
     m_Guardrail.SetModel(pModel);
-    XMMATRIX S = XMMatrixScaling(0.02f, 0.02f, 0.02f);
+    XMMATRIX S = XMMatrixScaling(0.03f, 0.03f, 0.03f);
 
     BoundingBox guardrailBox = m_Guardrail.GetModel()->boundingbox;
-
+    
     // 让护栏底部紧贴地面位于y = -2的平面
     guardrailBox.Transform(guardrailBox, S);
     float Ty = -(guardrailBox.Center.y - guardrailBox.Extents.y + 2.0f);
-    // 随机生成144颗随机朝向的树
-    std::vector<BasicEffect::InstancedData> treeData(144);
+    //生成护栏实例数据
+    std::vector<BasicEffect::InstancedData> guardrailData(720);
+    //创建实例缓冲区
     m_pInstancedBuffer = std::make_unique<Buffer>(m_pd3dDevice.Get(),
-        CD3D11_BUFFER_DESC(sizeof(BasicEffect::InstancedData) * 144, D3D11_BIND_VERTEX_BUFFER,
+        CD3D11_BUFFER_DESC(sizeof(BasicEffect::InstancedData) * 720, D3D11_BIND_VERTEX_BUFFER,
             D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE));
     m_pInstancedBuffer->SetDebugObjectName("InstancedBuffer");
 
-    std::mt19937 rng;
-    rng.seed(std::random_device()());
-    std::uniform_real<float> radiusNormDist(0.0f, 30.0f);
-    std::uniform_real<float> normDist;
-    float theta = 0.0f;
-    int pos = 0;
-    Transform transform;
-    transform.SetScale(0.02f, 0.02f, 0.02f);
-    for (int i = 0; i < 16; ++i)
-    {
-        // 取5-95的半径放置随机的树
-        for (int j = 0; j < 3; ++j)
-        {
-            // 距离越远，树木越多
-            for (int k = 0; k < 2 * j + 1; ++k, ++pos)
-            {
-                float radius = (float)(radiusNormDist(rng) + 30 * j + 5);
-                float randomRad = normDist(rng) * XM_2PI / 16;
-                transform.SetRotation(0.0f, normDist(rng) * XM_2PI, 0.0f);
-                transform.SetPosition(radius * cosf(theta + randomRad), Ty, radius * sinf(theta + randomRad));
 
-                XMStoreFloat4x4(&treeData[pos].world,
-                    XMMatrixTranspose(transform.GetLocalToWorldMatrixXM()));
-                XMStoreFloat4x4(&treeData[pos].worldInvTranspose,
-                    XMMatrixTranspose(XMath::InverseTranspose(transform.GetLocalToWorldMatrixXM())));
-            }
-        }
-        theta += XM_2PI / 16;
+    Transform transform;
+    transform.SetScale(0.03f, 0.03f, 0.03f);
+    float pos_x = -9.5f , pos_z=-500.0f;
+    for (int i = 0; i < 360; ++i)
+    {
+        transform.SetPosition(pos_x, Ty, pos_z);
+        pos_x = -pos_x;
+        pos_z += 3.0f;
+        XMStoreFloat4x4(&guardrailData[i].world,
+            XMMatrixTranspose(transform.GetLocalToWorldMatrixXM()));
+        XMStoreFloat4x4(&guardrailData[i].worldInvTranspose,
+            XMMatrixTranspose(XMath::InverseTranspose(transform.GetLocalToWorldMatrixXM())));
     }
 
+    // 上传实例数据
     memcpy_s(m_pInstancedBuffer->MapDiscard(m_pd3dImmediateContext.Get()), m_pInstancedBuffer->GetByteWidth(),
-        treeData.data(), treeData.size() * sizeof(BasicEffect::InstancedData));
+        guardrailData.data(), guardrailData.size() * sizeof(BasicEffect::InstancedData));
     m_pInstancedBuffer->Unmap(m_pd3dImmediateContext.Get());
 }
 

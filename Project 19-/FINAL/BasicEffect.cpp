@@ -37,9 +37,12 @@ public:
     D3D11_PRIMITIVE_TOPOLOGY m_CurrTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
     ComPtr<ID3D11InputLayout> m_pVertexPosNormalTexLayout;
+    ComPtr<ID3D11InputLayout> m_pVertexPosNormalTangentTexLayout;
     ComPtr<ID3D11InputLayout> m_pInstancePosNormalTexLayout;
 
     XMFLOAT4X4 m_World{}, m_View{}, m_Proj{};
+
+    bool m_NormalmapEnabled = false;
 };
 
 //
@@ -95,6 +98,11 @@ bool BasicEffect::InitAll(ID3D11Device* device)
 
     pImpl->m_pEffectHelper->SetBinaryCacheDirectory(L"Shaders\\Cache");
 
+    D3D_SHADER_MACRO defines[] = {
+    {"USE_NORMAL_MAP", ""},
+    { nullptr, nullptr}
+    };
+
     // 实例输入布局
     D3D11_INPUT_ELEMENT_DESC basicInstLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -112,6 +120,8 @@ bool BasicEffect::InitAll(ID3D11Device* device)
 
     Microsoft::WRL::ComPtr<ID3DBlob> blob;
     // 创建顶点着色器
+    pImpl->m_pEffectHelper->SetBinaryCacheDirectory(L"Shaders\\Cache\\");
+
     HR(pImpl->m_pEffectHelper->CreateShaderFromFile("BasicInstanceVS", L"Shaders/Basic.hlsl", device,
         "InstanceVS", "vs_5_0", nullptr, blob.GetAddressOf()));
     // 创建顶点布局
@@ -127,8 +137,8 @@ bool BasicEffect::InitAll(ID3D11Device* device)
     // 创建像素着色器
     pImpl->m_pEffectHelper->CreateShaderFromFile("BasicPS", L"Shaders/Basic.hlsl", device,
         "PS", "ps_5_0");
-
-
+    HR(pImpl->m_pEffectHelper->CreateShaderFromFile("NormalMapPS", L"Shaders\\Basic.hlsl",
+        device, "BasicPS", "ps_5_0", defines));
     // 创建通道
     EffectPassDesc passDesc;
     passDesc.nameVS = "BasicInstanceVS";
@@ -248,6 +258,15 @@ void BasicEffect::SetRenderDefault()
     pImpl->m_pCurrEffectPass = pImpl->m_pEffectHelper->GetEffectPass("BasicObject");
     pImpl->m_pCurrInputLayout = pImpl->m_pVertexPosNormalTexLayout;
     pImpl->m_CurrTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    pImpl->m_NormalmapEnabled = false;
+}
+
+void BasicEffect::SetRenderWithNormalMap()
+{
+    pImpl->m_pCurrEffectPass = pImpl->m_pEffectHelper->GetEffectPass("NormalMap");
+    pImpl->m_pCurrInputLayout = pImpl->m_pVertexPosNormalTangentTexLayout;
+    pImpl->m_CurrTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    pImpl->m_NormalmapEnabled = true;
 }
 
 void BasicEffect::DrawInstanced(ID3D11DeviceContext* deviceContext, Buffer& instancedBuffer, const GameObject& object, uint32_t numObjects)
