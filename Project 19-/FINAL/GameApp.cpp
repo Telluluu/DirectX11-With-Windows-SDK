@@ -109,13 +109,34 @@ void GameApp::UpdateScene(float dt)
     //车辆旋转
     float theta = 0.0f;
     static float nowTheta = 0.0f;
+
     //昼夜变化
-    static float phi2 = -0.577f;
-    static float rotationIntensity = 0.001f;
-    phi2 += rotationIntensity;
-    XMMATRIX W1 = XMMatrixRotationZ(phi2);
-    XMFLOAT3 sundir = XMFLOAT3(-0.577f, -0.577f, phi2);
+    static float phi = 0.0001f;
+    static float rotationIntensity = 0.0001f;
+    //日出
+    if (phi < 20.0f)
+        phi += rotationIntensity;
+    //日落
+    else if (phi >= 20.0f)
+        phi = -5.0f;
+    else if (phi <0 && phi >= -5.0f)
+        phi += rotationIntensity;
+    if(phi == 0)
+    {
+        sun.ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+        sun.diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+        sun.specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        sun.ambient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.0f);
+        sun.diffuse = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
+        sun.specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+    }
+    XMFLOAT3 sundir = XMFLOAT3(phi, 0.577f, 0.577f);
+    //更新光照方向
     sun.direction = sundir;
+    m_BasicEffect.SetDirLight(0, sun);
     //m_PSConstantBuffer.rotationZ = XMMatrixTranspose(W1);
 
 
@@ -434,6 +455,7 @@ void GameApp::UpdateScene(float dt)
             "Third Person",
             "Free Camera"
         };
+        ImGui::SliderFloat("phi", &phi, -5.0f, 5.0f);
         if (ImGui::Combo("Camera Mode", &curr_item, modes, ARRAYSIZE(modes)))
         {
             if (curr_item == 0 && m_CameraMode != CameraMode::FirstPerson)
@@ -825,9 +847,11 @@ bool GameApp::InitResource()
     dirLight[2].direction = XMFLOAT3(0.577f, -0.577f, -0.577f);
     dirLight[3] = dirLight[0];
     dirLight[3].direction = XMFLOAT3(-0.577f, -0.577f, -0.577f);
-    for (int i = 0; i < 4; ++i)
-        m_BasicEffect.SetDirLight(i, dirLight[i]);
+    //for (int i = 0; i < 4; ++i)
+    //    m_BasicEffect.SetDirLight(i, dirLight[i]);
 
+    sun = dirLight[0];
+    m_BasicEffect.SetDirLight(0, sun);
     //聚光灯(车辆车前灯)
     spotLight[0].ambient = XMFLOAT4(0.75f, 0.75f, 0.75f, 1.0f);
     spotLight[0].diffuse = XMFLOAT4(0.85f, 0.85f, 0.85f, 1.0f);
