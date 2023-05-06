@@ -137,7 +137,6 @@ void GameApp::UpdateScene(float dt)
     //更新光照方向
     sun.direction = sundir;
     m_BasicEffect.SetDirLight(0, sun);
-    //m_PSConstantBuffer.rotationZ = XMMatrixTranspose(W1);
 
 
     //是否刚刚进行过漂移
@@ -594,9 +593,10 @@ void GameApp::DrawScene()
     m_CarWheelR.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
 
-    ////绘制树木
-    //m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Trees, 144);
-    m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Guardrail, 360);
+    //绘制树木
+    m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer[0], m_Trees, 144);
+    //绘制护栏
+    m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer[1], m_Guardrail, 360);
 
     //绘制地面
     m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
@@ -880,12 +880,12 @@ void GameApp::CreateGuardrails()
     guardrailBox.Transform(guardrailBox, S);
     float Ty = -(guardrailBox.Center.y - guardrailBox.Extents.y + 2.0f);
     //生成护栏实例数据
-    std::vector<BasicEffect::InstancedData> guardrailData(720);
+    std::vector<BasicEffect::InstancedData> guardrailData(360);
     //创建实例缓冲区
-    m_pInstancedBuffer = std::make_unique<Buffer>(m_pd3dDevice.Get(),
-        CD3D11_BUFFER_DESC(sizeof(BasicEffect::InstancedData) * 720, D3D11_BIND_VERTEX_BUFFER,
+    m_pInstancedBuffer[1] = std::make_unique<Buffer>(m_pd3dDevice.Get(),
+        CD3D11_BUFFER_DESC(sizeof(BasicEffect::InstancedData) * 360, D3D11_BIND_VERTEX_BUFFER,
             D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE));
-    m_pInstancedBuffer->SetDebugObjectName("InstancedBuffer");
+    m_pInstancedBuffer[1]->SetDebugObjectName("InstancedBuffer");
 
 
     Transform transform;
@@ -903,12 +903,12 @@ void GameApp::CreateGuardrails()
     }
 
     // 上传实例数据
-    memcpy_s(m_pInstancedBuffer->MapDiscard(m_pd3dImmediateContext.Get()), m_pInstancedBuffer->GetByteWidth(),
+    memcpy_s(m_pInstancedBuffer[1]->MapDiscard(m_pd3dImmediateContext.Get()), m_pInstancedBuffer[1]->GetByteWidth(),
         guardrailData.data(), guardrailData.size() * sizeof(BasicEffect::InstancedData));
-    m_pInstancedBuffer->Unmap(m_pd3dImmediateContext.Get());
+    m_pInstancedBuffer[1]->Unmap(m_pd3dImmediateContext.Get());
 }
 
-void GameApp::CreateRandomTrees()
+void GameApp::CreateRandomTrees() 
 {
     // 初始化树
     Model* pModel = m_ModelManager.CreateFromFile("..\\Model\\tree.obj");
@@ -923,10 +923,10 @@ void GameApp::CreateRandomTrees()
     float Ty = -(treeBox.Center.y - treeBox.Extents.y + 2.0f);
     // 随机生成144颗随机朝向的树
     std::vector<BasicEffect::InstancedData> treeData(144);
-    m_pInstancedBuffer = std::make_unique<Buffer>(m_pd3dDevice.Get(),
+    m_pInstancedBuffer[0] = std::make_unique<Buffer>(m_pd3dDevice.Get(),
         CD3D11_BUFFER_DESC(sizeof(BasicEffect::InstancedData) * 144, D3D11_BIND_VERTEX_BUFFER,
             D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE));
-    m_pInstancedBuffer->SetDebugObjectName("InstancedBuffer");
+    m_pInstancedBuffer[0]->SetDebugObjectName("InstancedBuffer");
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
@@ -947,7 +947,12 @@ void GameApp::CreateRandomTrees()
                 float radius = (float)(radiusNormDist(rng) + 30 * j + 5);
                 float randomRad = normDist(rng) * XM_2PI / 16;
                 transform.SetRotation(0.0f, normDist(rng) * XM_2PI, 0.0f);
-                transform.SetPosition(radius * cosf(theta + randomRad), Ty, radius * sinf(theta + randomRad));
+                float tree_x = radius * cosf(theta + randomRad);
+                if (tree_x >= 0)
+                    tree_x += 12.0f;
+                else
+                    tree_x -= 12.0f;
+                transform.SetPosition(tree_x, Ty, radius * sinf(theta + randomRad));
 
                 XMStoreFloat4x4(&treeData[pos].world,
                     XMMatrixTranspose(transform.GetLocalToWorldMatrixXM()));
@@ -958,7 +963,7 @@ void GameApp::CreateRandomTrees()
         theta += XM_2PI / 16;
     }
 
-    memcpy_s(m_pInstancedBuffer->MapDiscard(m_pd3dImmediateContext.Get()), m_pInstancedBuffer->GetByteWidth(),
+    memcpy_s(m_pInstancedBuffer[0]->MapDiscard(m_pd3dImmediateContext.Get()), m_pInstancedBuffer[0]->GetByteWidth(),
         treeData.data(), treeData.size() * sizeof(BasicEffect::InstancedData));
-    m_pInstancedBuffer->Unmap(m_pd3dImmediateContext.Get());
+    m_pInstancedBuffer[0]->Unmap(m_pd3dImmediateContext.Get());
 }

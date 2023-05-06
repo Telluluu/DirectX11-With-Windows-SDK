@@ -32,6 +32,7 @@ private:
     bool InitResource();
     void CreateRandomTrees();
     void CreateGuardrails();
+    void CreateTrees();
 
 private:
 
@@ -49,7 +50,7 @@ private:
     GameObject m_Trees;										            // 树
     GameObject m_Ground;										        // 地面
     GameObject m_Road;                                                  // 公路
-    std::unique_ptr<Buffer> m_pInstancedBuffer;                         // 树的实例缓冲区
+    std::unique_ptr<Buffer> m_pInstancedBuffer[2];                      // 树和护栏的实例缓冲区
     GameObject m_Skybox;                                                // 天空盒
     ParticleManager m_Rain;                                             // 雨水粒子系统
     ParticleManager m_Fire;                                             // 火焰粒子系统
