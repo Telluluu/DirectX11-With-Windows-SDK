@@ -103,6 +103,7 @@ bool BasicEffect::InitAll(ID3D11Device* device)
     { nullptr, nullptr}
     };
 
+
     // 实例输入布局
     D3D11_INPUT_ELEMENT_DESC basicInstLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -130,15 +131,21 @@ bool BasicEffect::InitAll(ID3D11Device* device)
 
     pImpl->m_pEffectHelper->CreateShaderFromFile("BasicObjectVS", L"Shaders/Basic.hlsl", device,
         "ObjectVS", "vs_5_0", nullptr, blob.GetAddressOf());
+
     // 创建顶点布局
     HR(device->CreateInputLayout(VertexPosNormalTex::GetInputLayout(), ARRAYSIZE(VertexPosNormalTex::GetInputLayout()),
         blob->GetBufferPointer(), blob->GetBufferSize(), pImpl->m_pVertexPosNormalTexLayout.GetAddressOf()));
+    //HR(pImpl->m_pEffectHelper->CreateShaderFromFile("NormalMapVS", L"Shaders/Basic.hlsl",
+    //    device, "ObjectVS", "vs_5_0", defines, blob.ReleaseAndGetAddressOf()));
+
 
     // 创建像素着色器
     pImpl->m_pEffectHelper->CreateShaderFromFile("BasicPS", L"Shaders/Basic.hlsl", device,
         "PS", "ps_5_0");
-    HR(pImpl->m_pEffectHelper->CreateShaderFromFile("NormalMapPS", L"Shaders\\Basic.hlsl",
-        device, "BasicPS", "ps_5_0", defines));
+    //HR(pImpl->m_pEffectHelper->CreateShaderFromFile("NormalMapPS", L"Shaders/Basic.hlsl",
+    //    device, "PS", "ps_5_0", defines));
+
+
     // 创建通道
     EffectPassDesc passDesc;
     passDesc.nameVS = "BasicInstanceVS";
@@ -148,6 +155,9 @@ bool BasicEffect::InitAll(ID3D11Device* device)
     passDesc.nameVS = "BasicObjectVS";
     HR(pImpl->m_pEffectHelper->AddEffectPass("BasicObject", device, &passDesc));
 
+    //passDesc.nameVS = "NormalMapVS";
+    //passDesc.namePS = "NormalMapPS";
+    //HR(pImpl->m_pEffectHelper->AddEffectPass("NormalMap", device, &passDesc));
 
     pImpl->m_pEffectHelper->SetSamplerStateByName("g_Sam", RenderStates::SSLinearWrap.Get());
 
@@ -190,6 +200,8 @@ void BasicEffect::SetMaterial(const Material& material)
 
     auto pStr = material.TryGet<std::string>("$Diffuse");
     pImpl->m_pEffectHelper->SetShaderResourceByName("g_DiffuseMap", pStr ? tm.GetTexture(*pStr) : tm.GetNullTexture());
+    //pStr = material.TryGet<std::string>("$Normal");
+    //pImpl->m_pEffectHelper->SetShaderResourceByName("g_NormalMap", pStr ? tm.GetTexture(*pStr) : nullptr);
 }
 
 MeshDataInput BasicEffect::GetInputData(const MeshData& meshData)
@@ -197,6 +209,7 @@ MeshDataInput BasicEffect::GetInputData(const MeshData& meshData)
     MeshDataInput input;
     input.pInputLayout = pImpl->m_pCurrInputLayout.Get();
     input.topology = pImpl->m_CurrTopology;
+
     input.pVertexBuffers = {
         meshData.m_pVertices.Get(),
         meshData.m_pNormals.Get(),
@@ -205,6 +218,29 @@ MeshDataInput BasicEffect::GetInputData(const MeshData& meshData)
     };
     input.strides = { 12, 12, 8, 128 };
     input.offsets = { 0, 0, 0, 0 };
+
+    /*if (pImpl->m_NormalmapEnabled)
+    {
+        input.pVertexBuffers = {
+            meshData.m_pVertices.Get(),
+            meshData.m_pNormals.Get(),
+            meshData.m_pTangents.Get(),
+            meshData.m_pTexcoordArrays.empty() ? nullptr : meshData.m_pTexcoordArrays[0].Get()
+        };
+        input.strides = { 12, 12, 12, 8 };
+        input.offsets = { 0, 0, 0, 0 };
+    }
+    else
+    {
+        input.pVertexBuffers = {
+            meshData.m_pVertices.Get(),
+            meshData.m_pNormals.Get(),
+            meshData.m_pTexcoordArrays.empty() ? nullptr : meshData.m_pTexcoordArrays[0].Get(),
+            nullptr
+        };
+        input.strides = { 12, 12, 8, 128 };
+        input.offsets = { 0, 0, 0, 0 };
+    }*/
 
     input.pIndexBuffer = meshData.m_pIndices.Get();
     input.indexCount = meshData.m_IndexCount;

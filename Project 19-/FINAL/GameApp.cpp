@@ -8,6 +8,7 @@ using namespace DirectX;
 GameApp::GameApp(HINSTANCE hInstance, const std::wstring& windowName, int initWidth, int initHeight)
     : D3DApp(hInstance, windowName, initWidth, initHeight),
     m_CameraMode(CameraMode::FirstPerson),
+    //m_PSConstantBuffer(),
     m_EnableNormalMap(false)
 {
 }
@@ -105,8 +106,19 @@ void GameApp::UpdateScene(float dt)
     speed = std::clamp(speed, -0.1f, 0.1f);
 
     //旋转参数
+    //车辆旋转
     float theta = 0.0f;
     static float nowTheta = 0.0f;
+    //昼夜变化
+    static float phi2 = -0.577f;
+    static float rotationIntensity = 0.001f;
+    phi2 += rotationIntensity;
+    XMMATRIX W1 = XMMatrixRotationZ(phi2);
+    XMFLOAT3 sundir = XMFLOAT3(-0.577f, -0.577f, phi2);
+    sun.direction = sundir;
+    //m_PSConstantBuffer.rotationZ = XMMatrixTranspose(W1);
+
+
     //是否刚刚进行过漂移
     static bool isDrift=0;
 
@@ -327,6 +339,10 @@ void GameApp::UpdateScene(float dt)
                         //accerelation = -accerelation;
                         if (speed >= 0.005f || speed <= -0.005f)
                         {
+                            if (speed > 0.2f)
+                                speed -= 0.1f;
+                            if (speed < -0.2f)
+                                speed += 0.1f;
                             speed = -speed;
                             accerelation = -speed / std::abs(speed) * accerelation;
                         }
@@ -447,7 +463,7 @@ void GameApp::UpdateScene(float dt)
                 cam3rd->SetTarget(carPos.GetPosition());
                 cam3rd->SetDistance(8.0f);
                 cam3rd->SetDistanceMinMax(2.0f, 20.0f);
-                cam1st->LookAt(carPos.GetPosition(),
+                cam3rd->LookAt(carPos.GetPosition(),
                     carTransform.GetPosition(),
                     XMFLOAT3(0.0f, 1.0f, 0.0f));
                 m_CameraMode = CameraMode::ThirdPerson;
@@ -461,7 +477,7 @@ void GameApp::UpdateScene(float dt)
                     m_pCamera = cam1st;
                     OnResize();
                 }
-                // 从箱子上方开始
+                // 从车辆上方开始
                 XMFLOAT3 pos = carTransform.GetPosition();
                 XMFLOAT3 to = XMFLOAT3(0.0f, 0.0f, 1.0f);
                 XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
@@ -559,13 +575,15 @@ void GameApp::DrawScene()
     ////绘制树木
     //m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Trees, 144);
     m_BasicEffect.DrawInstanced(m_pd3dImmediateContext.Get(), *m_pInstancedBuffer, m_Guardrail, 360);
+
     //绘制地面
+    m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
+    //绘制公路
     if (m_EnableNormalMap)
         m_BasicEffect.SetRenderWithNormalMap();
     else
         m_BasicEffect.SetRenderDefault();
-    m_Ground.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-    //绘制公路
     m_Road.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
     //绘制空气墙
@@ -685,8 +703,8 @@ bool GameApp::InitResource()
     pModel = m_ModelManager.CreateFromGeometry("Road", Geometry::CreatePlane(20.0f,1000.0f));
     pModel->SetDebugObjectName("Road");
     m_TextureManager.AddTexture("Road_8k", m_TextureManager.CreateFromFile("..\\Texture\\Road_8k.jpg"));
-    m_TextureManager.AddTexture("Road_8kN", m_TextureManager.CreateFromFile("..\\Texture\\Road_8k_nmap.png"));
     pModel->materials[0].Set<std::string>("$Diffuse", "..\\Texture\\Road_8k.jpg");
+    m_TextureManager.AddTexture("Road_8kN", m_TextureManager.CreateFromFile("..\\Texture\\Road_8k_nmap.png"));
     pModel->materials[0].Set<std::string>("$Normal", "..\\Texture\\Road_8k_nmap.png");
     pModel->materials[0].Set<XMFLOAT4>("$AmbientColor", XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f));
     pModel->materials[0].Set<XMFLOAT4>("$DiffuseColor", XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
@@ -810,6 +828,7 @@ bool GameApp::InitResource()
     for (int i = 0; i < 4; ++i)
         m_BasicEffect.SetDirLight(i, dirLight[i]);
 
+    //聚光灯(车辆车前灯)
     spotLight[0].ambient = XMFLOAT4(0.75f, 0.75f, 0.75f, 1.0f);
     spotLight[0].diffuse = XMFLOAT4(0.85f, 0.85f, 0.85f, 1.0f);
     spotLight[0].specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
