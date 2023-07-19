@@ -121,17 +121,22 @@ void GameApp::UpdateScene(float dt)
         phi = -5.0f;
     else if (phi <0 && phi >= -5.0f)
         phi += rotationIntensity;
-    if(phi == 0)
+    if(phi == 0 || phi >= 5.0f)
     {
         sun.ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
         sun.diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
         sun.specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+        for (int i = 0; i < 4; ++i)
+        {
+            dirLight[i].ambient = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
+            m_BasicEffect.SetDirLight(i, dirLight[i]);
+        }
     }
-    else
+    else if(phi>=-5.0f && phi <5.0f)
     {
-        sun.ambient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.0f);
-        sun.diffuse = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
-        sun.specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+        sun.ambient = XMFLOAT4(0.65f, 0.15f, 0.15f, 1.0f);
+        sun.diffuse = XMFLOAT4(0.45f, 0.25f, 0.25f, 1.0f);
+        sun.specular = XMFLOAT4(0.3f, 0.1f, 0.1f, 1.0f);
     }
     XMFLOAT3 sundir = XMFLOAT3(phi, 0.577f, 0.577f);
     //更新光照方向
@@ -345,18 +350,15 @@ void GameApp::UpdateScene(float dt)
                             if (ImGui::IsKeyDown(ImGuiKey_W) || (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
                                 if (speed > 0)
                                     accerelation = 0.000002f;
-                                else accerelation = 0.000004f;
+                                else accerelation = 0.00005f;
                             if (ImGui::IsKeyDown(ImGuiKey_S))
                                 if (speed < 0)
                                     accerelation = -0.000002f;
-                                else accerelation = -0.000004f;
+                                else accerelation = -0.00005f;
                         }
-                        //speed += accerelation;
-                        speed = std::clamp(speed, -0.05f, 0.05f);
                     }
                     else
                     {
-                        //accerelation = -accerelation;
                         if (speed >= 0.005f || speed <= -0.005f)
                         {
                             if (speed > 0.2f)
@@ -371,6 +373,7 @@ void GameApp::UpdateScene(float dt)
                         else if (speed < 0)
                             speed = 0.005f;
                     }
+                speed = std::clamp(speed, -0.1f, 0.1f);
                 if (ImGui::IsKeyReleased(ImGuiKey_F) && isDrift)
                 {
                     //漂移可以获得向前的加速度，若倒车时漂移就没有加速度了
@@ -454,7 +457,22 @@ void GameApp::UpdateScene(float dt)
             "Third Person",
             "Free Camera"
         };
-        ImGui::SliderFloat("phi", &phi, -5.0f, 5.0f);
+        if(phi>0 && phi<5.0f)
+            ImGui::SliderFloat("Sunrise", &phi, -5.0f, 20.0f);
+        else if(phi<0)
+            ImGui::SliderFloat("Sunset", &phi, -5.0f, 20.0f);
+        else if(phi>5.0f && phi<=20.0f)
+            ImGui::SliderFloat("Daylight", &phi, -5.0f, 20.0f);
+        if (phi >= -5.0f && phi < 5.0f)
+        {
+            Model* pModel = m_ModelManager.GetModel("Skybox");
+            pModel->materials[0].Set<std::string>("$Skybox", "Sunset");
+        }
+        else
+        {
+            Model* pModel = m_ModelManager.GetModel("Skybox");
+            pModel->materials[0].Set<std::string>("$Skybox", "..\\Texture\\grasscube1024.dds");
+        }
         if (ImGui::Combo("Camera Mode", &curr_item, modes, ARRAYSIZE(modes)))
         {
             if (curr_item == 0 && m_CameraMode != CameraMode::FirstPerson)
@@ -782,6 +800,8 @@ bool GameApp::InitResource()
         m_Skybox.SetModel(pModel);
         m_TextureManager.CreateFromFile("..\\Texture\\grasscube1024.dds", false, true);
         pModel->materials[0].Set<std::string>("$Skybox", "..\\Texture\\grasscube1024.dds");
+        
+        m_TextureManager.AddTexture("Sunset", m_TextureManager.CreateFromFile("..\\Texture\\Sunset.dds", false, true));
     }
 
     // ******************
@@ -836,8 +856,7 @@ bool GameApp::InitResource()
     // 初始化光照
     //
     // 方向光(默认)
-    DirectionalLight dirLight[4];
-    dirLight[0].ambient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.0f);
+    dirLight[0].ambient = XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f);
     dirLight[0].diffuse = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
     dirLight[0].specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
     dirLight[0].direction = XMFLOAT3(-0.577f, -0.577f, 0.577f);
@@ -847,8 +866,8 @@ bool GameApp::InitResource()
     dirLight[2].direction = XMFLOAT3(0.577f, -0.577f, -0.577f);
     dirLight[3] = dirLight[0];
     dirLight[3].direction = XMFLOAT3(-0.577f, -0.577f, -0.577f);
-    //for (int i = 0; i < 4; ++i)
-    //    m_BasicEffect.SetDirLight(i, dirLight[i]);
+    for (int i = 0; i < 4; ++i)
+        m_BasicEffect.SetDirLight(i, dirLight[i]);
 
     sun = dirLight[0];
     m_BasicEffect.SetDirLight(0, sun);

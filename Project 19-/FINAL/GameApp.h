@@ -32,7 +32,6 @@ private:
     bool InitResource();
     void CreateRandomTrees();
     void CreateGuardrails();
-    void CreateTrees();
 
 private:
 
@@ -66,6 +65,7 @@ private:
     FirstPersonCameraController m_CameraController;                     // 摄像机控制器
     CameraMode m_CameraMode;								        	// 摄像机模式
     bool m_EnableNormalMap = true;								        // 开启法线贴图
+    DirectionalLight dirLight[4];                                       //白天时的光照
     DirectionalLight sun;                                               // 太阳光
 
     //PSConstantBuffer m_PSConstantBuffer;			                    // 用于修改用于PS的GPU常量缓冲区的变量
