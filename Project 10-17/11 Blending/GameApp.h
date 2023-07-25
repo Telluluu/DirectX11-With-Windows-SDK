@@ -101,6 +101,7 @@ private:
     GameObject m_Floor;										    // 地板
     std::vector<GameObject> m_Walls;							// 墙壁
     GameObject m_Water;										    // 水
+    GameObject m_Cube;
 
     ComPtr<ID3D11VertexShader> m_pVertexShader3D;				// 用于3D的顶点着色器
     ComPtr<ID3D11PixelShader> m_pPixelShader3D;				    // 用于3D的像素着色器

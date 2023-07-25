@@ -116,7 +116,7 @@ void GameApp::DrawScene()
     m_WireFence.Draw(m_pd3dImmediateContext.Get());
     // 绘制了篱笆盒后再绘制水面
     m_Water.Draw(m_pd3dImmediateContext.Get());
-    
+    m_Cube.Draw(m_pd3dImmediateContext.Get());
 
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -220,6 +220,10 @@ bool GameApp::InitResource()
         Geometry::CreatePlane(XMFLOAT2(20.0f, 20.0f), XMFLOAT2(10.0f, 10.0f)));
     m_Water.SetTexture(texture.Get());
     m_Water.SetMaterial(material);
+
+    m_Cube.SetBuffer(m_pd3dDevice.Get(), Geometry::CreateBox());
+    m_Cube.SetTexture(texture.Get());
+    m_Cube.SetMaterial(material);
     
     // ******************
     // 初始化常量缓冲区的值
