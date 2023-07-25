@@ -385,4 +385,3 @@ void GameApp::CreateRandomCubes()
         theta += XM_2PI / 16;
     }
 }
-
