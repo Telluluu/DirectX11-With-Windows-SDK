@@ -105,32 +105,6 @@ void GameApp::UpdateTriangle()
 
 void GameApp::UpdateQuad()
 {
-    ImGuiIO& io = ImGui::GetIO();
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
-    {
-        m_Theta = XMScalarModAngle(m_Theta + io.MouseDelta.x * 0.01f);
-        m_Phi += -io.MouseDelta.y * 0.01f;
-    }
-    m_Radius -= io.MouseWheel;
-
-    // 限制Phi
-    m_Phi = std::clamp(m_Phi, XM_PI / 18, 1.0f - XM_PI / 18);
-    // 限制半径
-    m_Radius = std::clamp(m_Radius, 1.0f, 100.0f);
-
-    XMVECTOR posVec = XMVectorSet(
-        m_Radius * sinf(m_Phi) * cosf(m_Theta),
-        m_Radius * cosf(m_Phi),
-        m_Radius * sinf(m_Phi) * sinf(m_Theta),
-        0.0f);
-
-    // *****************
-    // 更新数据并应用
-    //
-    XMMATRIX WVP = XMMatrixLookAtLH(posVec, g_XMZero, g_XMIdentityR1) *
-        XMMatrixPerspectiveFovLH(XM_PIDIV2, AspectRatio(), 0.1f, 1000.0f);
-    WVP = XMMatrixTranspose(WVP);
-    m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, (const FLOAT*)&WVP);
 
     static int part_item = 0;
     static const char* part_modes[] = {
@@ -140,16 +114,19 @@ void GameApp::UpdateQuad()
     };
     if (ImGui::Combo("Partition Mode", &part_item, part_modes, ARRAYSIZE(part_modes)))
         m_PartitionMode = static_cast<PartitionMode>(part_item);
-    ImGui::SliderFloat4("QuadEdgeTess", m_QuadEdgeTess, 1.0f, 25.0f, "%.1f");
-    ImGui::SliderFloat2("QuadInsideTess", m_QuadInsideTess, 1.0f, 25.0f, "%.1f");
+    ImGui::SliderFloat4("QuadEdgeTess", m_QuadEdgeTess, 1.0f, 10.0f, "%.1f");
+    ImGui::SliderFloat2("QuadInsideTess", m_QuadInsideTess, 1.0f, 10.0f, "%.1f");
     m_pEffectHelper->GetConstantBufferVariable("g_QuadEdgeTess")->SetFloatVector(4, m_QuadEdgeTess);
-    m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(4, m_QuadInsideTess);
+    m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(2, m_QuadInsideTess);
 
     // *****************
     // 更新数据并应用
     //
     m_pEffectHelper->GetConstantBufferVariable("g_QuadEdgeTess")->SetFloatVector(4, m_QuadEdgeTess);
-    m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(4, m_QuadInsideTess);
+    m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(2, m_QuadInsideTess);
+
+    float Vr[4] = { 0.0f, 0.0f, 0.0f, 0.5f };
+    float NR[4] = { 0.0f, 1.0f, -1.0f, 0.7f };
 }
 
 void GameApp::UpdateBezierCurve()
@@ -269,11 +246,11 @@ void GameApp::DrawQuad()
     // ******************
     // 绘制Direct3D部分
     //
-    UINT strides[1] = { sizeof(XMFLOAT4) };
+    UINT strides[1] = { sizeof(XMFLOAT3) };
     UINT offsets[1] = { 0 };
     m_pd3dImmediateContext->IASetVertexBuffers(0, 1, m_pQuadVB.GetAddressOf(), strides, offsets);
     m_pd3dImmediateContext->IASetInputLayout(m_pInputLayout.Get());
-    m_pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_2_CONTROL_POINT_PATCHLIST);
+    m_pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 
     m_pEffectHelper->GetConstantBufferVariable("g_Color")->SetFloatVector(4, Colors::White);
     switch (m_PartitionMode)
@@ -283,7 +260,7 @@ void GameApp::DrawQuad()
     case PartitionMode::Even: m_pEffectHelper->GetEffectPass("Tessellation_Quad_Even")->Apply(m_pd3dImmediateContext.Get()); break;
     }
 
-    m_pd3dImmediateContext->Draw(2, 0);
+    m_pd3dImmediateContext->Draw(4, 0);
 }
 
 void GameApp::DrawBezierCurve()
@@ -340,17 +317,23 @@ bool GameApp::InitResource()
     D3D11_SUBRESOURCE_DATA initData{ triVertices };
     HR(m_pd3dDevice->CreateBuffer(&bufferDesc, &initData, m_pTriangleVB.GetAddressOf()));
 
-    //XMFLOAT4 quadVertices[4] = {
-    //    XMFLOAT4(-0.4f, 0.72f, 0.0f, 0.0f),
-    //    XMFLOAT4(0.4f, 0.72f, 0.0f, 0.0f),
-    //    XMFLOAT4(-0.4f, -0.72f, 0.0f, 0.0f),
-    //    XMFLOAT4(0.4f, -0.72f, 0.0f, 0.0f)
+    //XMFLOAT3 quadVertices[4] = {
+    //    XMFLOAT3(-0.4f, 0.72f, 0.0f),
+    //    XMFLOAT3(0.4f, 0.72f, 0.0f),
+    //    XMFLOAT3(-0.4f, -0.72f, 0.0f),
+    //    XMFLOAT3(0.4f, -0.72f, 0.0f)
     //};
-     
+
     XMFLOAT4 quadVertices[2] = {
-    XMFLOAT4(0.0f, 0.0f, 0.0f, 7.0f),
-    XMFLOAT4(0.0f, 0.0f, 1.0f, 5.0f)
+    XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f),
+    XMFLOAT4(0.1f, 1.0f, -1.0f, 0.7f)
     };
+
+    //float Vr[4] = { 0.0f, 0.0f, 0.0f, 0.5f };
+    //float NR[4] = { 0.0f, 1.0f, -1.0f, 0.7f };
+    //m_pEffectHelper->GetConstantBufferVariable("g_posL")->SetFloatVector(4, Vr);
+    //m_pEffectHelper->GetConstantBufferVariable("g_posH")->SetFloatVector(4, NR);
+
     bufferDesc.ByteWidth = sizeof quadVertices;
     initData.pSysMem = quadVertices;
     HR(m_pd3dDevice->CreateBuffer(&bufferDesc, &initData, m_pQuadVB.GetAddressOf()));
@@ -380,6 +363,7 @@ bool GameApp::InitResource()
         XMFLOAT3(+5.0f,  0.0f, -15.0f),
         XMFLOAT3(+25.0f, 10.0f, -15.0f)
     };
+
     bufferDesc.ByteWidth = sizeof surfaceVertices;
     initData.pSysMem = surfaceVertices;
     HR(m_pd3dDevice->CreateBuffer(&bufferDesc, &initData, m_pBezSurfaceVB.GetAddressOf()));
@@ -394,13 +378,12 @@ bool GameApp::InitResource()
     m_BezPoints[7] = XMFLOAT3(0.4f, -0.3f, 0.0f);
     m_BezPoints[8] = XMFLOAT3(0.6f, 0.6f, 0.0f);
     m_BezPoints[9] = XMFLOAT3(0.8f, 0.4f, 0.0f);
-    
+
     // 动态更新
     bufferDesc.ByteWidth = sizeof(XMFLOAT3) * 12;
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     HR(m_pd3dDevice->CreateBuffer(&bufferDesc, nullptr, m_pBezCurveVB.GetAddressOf()));
-
 
     // ******************
     // 创建光栅化状态
@@ -417,8 +400,7 @@ bool GameApp::InitResource()
 
     ComPtr<ID3DBlob> blob;
     D3D11_INPUT_ELEMENT_DESC inputElemDesc[1] = {
-        /*{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}*/
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     m_pEffectHelper->SetBinaryCacheDirectory(L"Shaders\\Cache");
