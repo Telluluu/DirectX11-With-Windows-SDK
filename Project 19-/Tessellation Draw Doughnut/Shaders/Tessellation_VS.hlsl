@@ -1,5 +1,13 @@
 
-float3 VS(float3 posL : POSITION) : POSITION
+#include "Tessellation.hlsli"
+//float3 VS(float3 posL : POSITION) : POSITION
+//{
+//    return posL;
+//}
+
+VertexOut VS(float4 pos : POSITION)
 {
-    return posL;
+    VertexOut vOut;
+    vOut.posL = pos;
+    return vOut;
 }

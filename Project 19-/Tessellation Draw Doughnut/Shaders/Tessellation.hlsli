@@ -25,7 +25,7 @@ cbuffer CBPatchTess : register(b2)
 
 struct VertexOut
 {
-    float3 posL : POSITION;
+    float4 posL : POSITION;
 };
 
 typedef VertexOut HullOut;
@@ -81,7 +81,7 @@ TriPatchTess TriConstantHS(InputPatch<VertexOut, 3> patch, uint patchID : SV_Pri
     return pt;
 }
 
-QuadPatchTess QuadConstantHS(InputPatch<VertexOut, 4> patch, uint patchID : SV_PrimitiveID)
+QuadPatchTess QuadConstantHS(InputPatch<VertexOut, 2> patch, uint patchID : SV_PrimitiveID)
 {
     QuadPatchTess pt;
     

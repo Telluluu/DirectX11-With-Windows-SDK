@@ -11,7 +11,7 @@
 [outputcontrolpoints(4)]
 [patchconstantfunc("QuadConstantHS")]
 [maxtessfactor(64.0f)]
-float3 HS(InputPatch<VertexOut, 4> patch, uint i : SV_OutputControlPointID, uint patchId : SV_PrimitiveID) : POSITION
+float3 HS(InputPatch<VertexOut, 2> patch, uint i : SV_OutputControlPointID, uint patchId : SV_PrimitiveID) : POSITION
 {
     return patch[i].posL;
 }
