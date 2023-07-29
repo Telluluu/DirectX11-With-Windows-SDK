@@ -13,22 +13,20 @@ cbuffer cbInitSettings : register(b0)
 cbuffer cbUpdateSettings : register(b1)
 {
     float A;//菲利普频谱参数，影响波浪高度
-    float4 WindVelocityAndSeed;//xyzw，xy为风速，zw为随机数种子
+    float2 WindVelocity;//风速
     
     float Lambda; //偏移影响
     float HeightScale; //高度影响
     float BubblesScale; //泡沫强度
     float BubblesThreshold; //泡沫阈值
     float deltaTime; // 累积时间
-    
-    float2 g_pad1; //对齐16字节打包
 }
 
 //用于FFT计算的阶数
 cbuffer cbns : register(b2)
 {
     int Ns;
-    float3 g_pad2;
+    float3 g_pad1;
 }
 
 RWTexture2D<float4> GaussianRandomRT : register(u0);//保存高斯随机数
@@ -55,7 +53,7 @@ float2 CcomplexMultiply(float2 c1, float2 c2);
 float DonelanBannerDirectionalSpreading(float2 k)
 {
     float betaS;
-    float omegap = 0.855f * G / length(WindVelocityAndSeed.xy);
+    float omegap = 0.855f * G / length(WindVelocity.xy);
     float ratio = Dispersion(k) / omegap;
 
     if (ratio < 0.95f)
@@ -71,14 +69,14 @@ float DonelanBannerDirectionalSpreading(float2 k)
         float epsilon = -0.4f + 0.8393f * exp(-0.567f * log(ratio * ratio));
         betaS = pow(10, epsilon);
     }
-    float theta = atan2(k.y, k.x) - atan2(WindVelocityAndSeed.y, WindVelocityAndSeed.x);
+    float theta = atan2(k.y, k.x) - atan2(WindVelocity.y, WindVelocity.x);
 
     return betaS / max(1e-7f, 2.0f * tanh(betaS * PI) * pow(cosh(betaS * theta), 2));
 }
 //正余弦平方方向拓展
 float PositiveCosineSquaredDirectionalSpreading(float2 k)
 {
-    float theta = atan2(k.y, k.x) - atan2(WindVelocityAndSeed.y, WindVelocityAndSeed.x);
+    float theta = atan2(k.y, k.x) - atan2(WindVelocity.y, WindVelocity.x);
     if (theta > -PI / 2.0f && theta < PI / 2.0f)
     {
         return 2.0f / PI * pow(cos(theta), 2);
@@ -89,17 +87,27 @@ float PositiveCosineSquaredDirectionalSpreading(float2 k)
     }
 }
 
+float4 H0(float2 k, int2 id)
+{
+    float2 rand = Gaussian(id);
+    //float2 rand = float2(1.0f, 1.0f);
+    float2 h0 = rand * sqrt(abs(Phillips(k) * DonelanBannerDirectionalSpreading(k)) / 2.0f);
+    float2 h0Conj = rand * sqrt(abs(Phillips(-k) * DonelanBannerDirectionalSpreading(-k)) / 2.0f);
+    h0Conj.y *= -1.0f;
+    return float4(h0, h0Conj);
+}
 
 float Phillips(float2 k)
 {
     float kLength = length(k);
+    kLength = max(0.01f, kLength);
     float kLength2 = kLength * kLength;
     float kLength4 = kLength2 * kLength4;
-    float L = length(WindVelocityAndSeed.xy) * length(WindVelocityAndSeed.xy) / G;
+    float L = length(WindVelocity) * length(WindVelocity) / G;
     float L2 = L * L;
     
     //|k^2 ω^2|在波数较多时拟合度差
-    //在Tessendorf的论文中提到可以将|{\vec k^2·\vec \omega}|^2修改为exp(-k^2l^2)
+    //在Tessendorf的论文中提到可以将|{\vec k^2·\vec \omega}|^2修改为exp(-k^2 * l^2)
     //其中l<<L
     
     float damping = 0.01f;

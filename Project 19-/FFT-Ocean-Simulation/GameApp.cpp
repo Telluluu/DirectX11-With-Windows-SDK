@@ -3,6 +3,39 @@
 #include <DXTrace.h>
 using namespace DirectX;
 
+
+//只需要传递一次的cb
+struct
+{
+    float m_SpatialStep = 0.0f;			// 海洋宽度
+    int fftSize;   //fft纹理大小
+    DirectX::XMFLOAT2 g_pad0;
+} m_CBInitSettings = {};
+
+
+//更新时维护的参数结构体
+struct
+{
+    float A = 10;            //海浪高度因子
+    DirectX::XMFLOAT2 WindVelocityAndSeed = { 0.1f, 0.2f };//xy为风速
+
+    float Lambda = -1.0;  //控制偏移大小
+    float HeightScale = 1.0;  //高度影响
+    float BubblesScale = 1.0;  //泡沫强度
+    float BubblesThreshold = 1.0;  //泡沫阈值
+    float deltaTime = 0.0f;		// 累积时间
+
+} m_CBUpdataSettings = {};// 对应Waves.hlsli的常量缓冲区
+
+
+//专门传递Ns的结构体（用于FFT计算时的阶数）
+struct
+{
+    int ns;
+    DirectX::XMFLOAT3 g_pad1;
+}m_CBns = {};
+
+
 GameApp::GameApp(HINSTANCE hInstance, const std::wstring& windowName, int initWidth, int initHeight)
     : D3DApp(hInstance, windowName, initWidth, initHeight)
 {

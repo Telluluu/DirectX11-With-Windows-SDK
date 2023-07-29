@@ -15,38 +15,6 @@
 #include <ModelManager.h>
 #include <TextureManager.h>
 
-//只需要传递一次的cb
-struct 
-{
-    float m_SpatialStep = 0.0f;			// 海洋宽度
-    int fftSize;   //fft纹理大小
-    DirectX::XMFLOAT2 g_pad0;
-} m_CBInitSettings = {};
- 
-
-//更新时维护的参数结构体
-struct 
-{
-    float A = 10;            //海浪高度因子
-    DirectX::XMFLOAT4 WindVelocityAndSeed = { 0.1f, 0.2f, 0.0, 0.0 };//xyzw,xy为风速, zw为两个随机种子
-
-    float Lambda = -1.0;  //控制偏移大小
-    float HeightScale = 1.0;  //高度影响
-    float BubblesScale = 1.0;  //泡沫强度
-    float BubblesThreshold = 1.0;  //泡沫阈值
-    float deltaTime = 0.0f;		// 累积时间
-
-    DirectX::XMFLOAT2 g_pad1;//对齐16字节打包
-} m_CBUpdataSettings = {};// 对应Waves.hlsli的常量缓冲区
-
-
-//专门传递Ns的结构体（用于FFT计算时的阶数）
-struct 
-{
-    int ns;
-    DirectX::XMFLOAT3 g_pad2;
-}m_CBns = {};
-
 class GameApp : public D3DApp
 {
 public:

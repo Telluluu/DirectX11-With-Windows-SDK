@@ -56,49 +56,17 @@ void Waves::InitResource(ID3D11Device* device, uint32_t rows, uint32_t cols,
     m_Model.materials[0].Set<XMFLOAT2>("$TexScale", XMFLOAT2(m_TexU, m_TexV));
 }
 
-//std::unique_ptr<EffectHelper> Ocean::m_pEffectHelper = nullptr;
+std::unique_ptr<EffectHelper> Ocean::m_pEffectHelper = nullptr;
 
 void Ocean::InitResource(ID3D11Device* device,
     uint32_t rows, uint32_t cols, float texU, float texV,
     float timeStep, float spatialStep, float waveSpeed, float damping, float flowSpeedX, float flowSpeedY)
 {
-    if (!m_pEffectHelper)
-    {
-        m_pEffectHelper = std::make_unique<EffectHelper>();
-        std::vector<LPCWSTR> csoFileName
-        {
-            L"Shaders/ComputeGaussianRandom_CS.cso"
-        };
-        std::vector<std::string> shaderName
-        {
-            "ComputeGaussianRandom"
-        };
-
-        ComPtr<ID3DBlob> blob;
-        auto pCsoFileName = csoFileName.begin();
-        auto pShaderName = shaderName.begin();
-
-        for (; pCsoFileName != csoFileName.end() && pShaderName != shaderName.end(); pCsoFileName++, pShaderName++)
-        {
-            m_pEffectHelper->CreateShaderFromFile(pCsoFileName, L"Shaders\\ComputeGaussianRandom_CS.hlsl", shaderName, "cs_5_0", blob.GetAddressOf());
-
-            HR(D3DReadFileToBlob(*pCsoFileName, blob.ReleaseAndGetAddressOf()));
-            HR(m_pEffectHelper->AddShader(*pShaderName, device, blob.Get()));
-        }
-
-        EffectPassDesc passDesc;
-
-        for (auto& shader : shaderName)
-        {
-            passDesc.nameCS = shader;
-            HR(m_pEffectHelper->AddEffectPass(shader, device, &passDesc));
-        }
-    }
-
     Waves::InitResource(device, rows, cols, texU, texV, timeStep,
         spatialStep, waveSpeed, damping, flowSpeedX, flowSpeedY, false);
 
 
+    //为每一个纹理创建资源
     D3D11_TEXTURE2D_DESC texDesc;
     texDesc.Width = cols;
     texDesc.Height = rows;
@@ -112,13 +80,88 @@ void Ocean::InitResource(ID3D11Device* device,
         D3D11_BIND_UNORDERED_ACCESS;
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = 0;
-    HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, m_pGaussianRandomRT.GetAddressOf());
-    if (FAILED(hr))
-        return hr;
+    HRESULT hr;
+    //hr = device->CreateTexture2D(&texDesc, nullptr, m_pGaussianRandomRT.GetAddressOf());
+    // 
+    //if (FAILED(hr))
+    //    return hr;
+    //...
+    //为上面每一个纹理都创建资源,此处省略（太长了）
+    //...
+
+
+    // 创建着色器资源视图
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    srvDesc.Texture2D.MipLevels = 1;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    //只需要为三个采样需要用的的纹理资源创建SRV
+    hr = device->CreateShaderResourceView(m_pDisplaceRT.Get(), &srvDesc, m_pDisplaceSRV.GetAddressOf());
+    //if (FAILED(hr))
+    //    return hr;
+    hr = device->CreateShaderResourceView(m_pNormalRT.Get(), &srvDesc, m_pNormalSRV.GetAddressOf());
+    //if (FAILED(hr))
+    //    return hr;
+    hr = device->CreateShaderResourceView(m_pBubblesRT.Get(), &srvDesc, m_pBubblesSRV.GetAddressOf());
+    //if (FAILED(hr))
+    //    return hr;
+
+
+    // 创建无序访问视图
+    D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+    uavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    uavDesc.Texture2D.MipSlice = 0;
+    hr = device->CreateUnorderedAccessView(m_pHeightSpectrumRT.Get(), &uavDesc, m_pDisplaceXSpectrumUAV.GetAddressOf());
+    hr = device->CreateUnorderedAccessView(m_pDisplaceRT.Get(), &uavDesc, m_pDisplaceZSpectrumUAV.GetAddressOf());
+    hr = device->CreateUnorderedAccessView(m_pInputRT.Get(), &uavDesc, m_pDisplaceUAV.GetAddressOf());
+    hr = device->CreateUnorderedAccessView(m_pOutputRT.Get(), &uavDesc, m_pInputUAV.GetAddressOf());
+    hr = device->CreateUnorderedAccessView(m_pNormalRT.Get(), &uavDesc, m_pOutputUAV.GetAddressOf());
+    hr = device->CreateUnorderedAccessView(m_pBubblesRT.Get(), &uavDesc, m_pNormalUAV.GetAddressOf());
+    //if (FAILED(hr))
+    //    return hr;
+    //
+    //为上面每一个纹理都创建UAV,此处省略（太长了）
+
+    //创建着色器资源
+
+    std::vector<LPCWSTR> fileName
+    {
+        L"Shaders/CreateDisplaceSpectrum_CS.cso",
+        L"Shaders/CreateHeightSpectrum_CS.cso",
+        L"Shaders/FFTHorizontal_CS.cso",
+        L"Shaders/FFTHorizontalEnd_CS.cso",
+        L"Shaders/FFTVertical_CS.cso",
+        L"Shaders/FFTVerticalEnd_CS.cso",
+        L"TextureGenerationDisplace_CS.cso",
+        L"TextureGenerationNormalBubbles_CS.cso"
+    };
+    std::vector<std::string> shaderName
+    {
+        "CreateDisplaceSpectrum",
+        "CreateHeightSpectrum",
+        "FFTHorizontal",
+        "FFTHorizontalEnd",
+        "FFTVertical",
+        "FFTVerticalEnd",
+        "TextureGenerationDisplace",
+        "TextureGenerationNormalBubbles"
+    };
+
+    Microsoft::WRL::ComPtr<ID3DBlob> blob;
+    auto pfileName = fileName.begin();
+    auto pshaderName = shaderName.begin();
+    for (; pfileName != fileName.end() && pshaderName != shaderName.end(); pfileName++, pshaderName++)
+    {
+        m_pEffectHelper->CreateShaderFromFile(*pshaderName, *pfileName, device,
+            "CS", "cs_5_0", nullptr, blob.GetAddressOf());
+        hr = device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pCompGaussianRandomCS.GetAddressOf());
+    }
+}
+{
 
 }
-
-
 
 
 

@@ -196,13 +196,14 @@ public:
         float flowSpeedX,               // 水流X方向速度
         float flowSpeedY);               // 水流Y方向速度
 
+    void OceanUpdate(ID3D11DeviceContext* deviceContext, float dt);
+
     void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
 private:
-    std::unique_ptr<EffectHelper> m_pEffectHelper = nullptr;
+    static std::unique_ptr<EffectHelper> m_pEffectHelper;
 
     //用Comptr管理纹理资源
-    ComPtr<ID3D11Texture2D> m_pGaussianRandomRT;         //高斯随机数对
 
     ComPtr<ID3D11Texture2D> m_pHeightSpectrumRT;         //高度频谱
     ComPtr<ID3D11Texture2D> m_pDisplaceXSpectrumRT;      //x方向偏移频谱
@@ -214,7 +215,28 @@ private:
     ComPtr<ID3D11Texture2D> m_pNormalRT;                 //法线纹理
     ComPtr<ID3D11Texture2D> m_pBubblesRT;                //泡沫纹理
 
+    ComPtr<ID3D11ShaderResourceView> m_pDisplaceSRV;    //只需要为三个采样需要
+    ComPtr<ID3D11ShaderResourceView> m_pNormalSRV;      //用的的纹理资源创建着色器视图资源
+    ComPtr<ID3D11ShaderResourceView> m_pBubblesSRV;
 
+    //无序访问视图
+    ComPtr<ID3D11UnorderedAccessView> m_pHeightSpectrumUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pDisplaceXSpectrumUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pDisplaceZSpectrumUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pDisplaceUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pInputUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pOutputUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pNormalUAV;
+    ComPtr<ID3D11UnorderedAccessView> m_pBubblesUAV;
+
+    ComPtr<ID3D11ComputeShader> m_pCreateDisplaceSpectrumCS;
+    ComPtr<ID3D11ComputeShader> m_pCreateHeightSpectrumCS;
+    ComPtr<ID3D11ComputeShader> m_pFFTHorizontalCS;
+    ComPtr<ID3D11ComputeShader> m_pFFTHorizontalEndCS;
+    ComPtr<ID3D11ComputeShader> m_pFFTVerticalCS;
+    ComPtr<ID3D11ComputeShader> m_pFFTVerticalEndCS;
+    ComPtr<ID3D11ComputeShader> m_pTextureGenerationDisplaceCS;
+    ComPtr<ID3D11ComputeShader> m_pTextureGenerationNormalBubblesCS;
 };
 
 #endif
