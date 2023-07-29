@@ -80,6 +80,8 @@ void Ocean::InitResource(ID3D11Device* device,
 
         for (; pCsoFileName != csoFileName.end() && pShaderName != shaderName.end(); pCsoFileName++, pShaderName++)
         {
+            m_pEffectHelper->CreateShaderFromFile(pCsoFileName, L"Shaders\\ComputeGaussianRandom_CS.hlsl", shaderName, "cs_5_0", blob.GetAddressOf());
+
             HR(D3DReadFileToBlob(*pCsoFileName, blob.ReleaseAndGetAddressOf()));
             HR(m_pEffectHelper->AddShader(*pShaderName, device, blob.Get()));
         }
@@ -92,6 +94,28 @@ void Ocean::InitResource(ID3D11Device* device,
             HR(m_pEffectHelper->AddEffectPass(shader, device, &passDesc));
         }
     }
+
+    Waves::InitResource(device, rows, cols, texU, texV, timeStep,
+        spatialStep, waveSpeed, damping, flowSpeedX, flowSpeedY, false);
+
+
+    D3D11_TEXTURE2D_DESC texDesc;
+    texDesc.Width = cols;
+    texDesc.Height = rows;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.SampleDesc.Quality = 0;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE |
+        D3D11_BIND_UNORDERED_ACCESS;
+    texDesc.CPUAccessFlags = 0;
+    texDesc.MiscFlags = 0;
+    HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, m_pGaussianRandomRT.GetAddressOf());
+    if (FAILED(hr))
+        return hr;
+
 }
 
 

@@ -6,7 +6,7 @@ cbuffer cbInitSettings : register(b0)
 {
     float OceanLength; //海洋宽度
     int N;  //纹理宽度
-    float2 g_pad_0; //对齐16字节打包
+    float2 g_pad0; //对齐16字节打包
 }
 
 //用于控制海面的参数
@@ -14,26 +14,49 @@ cbuffer cbUpdateSettings : register(b1)
 {
     float A;//菲利普频谱参数，影响波浪高度
     float4 WindVelocityAndSeed;//xyzw，xy为风速，zw为随机数种子
+    
+    float Lambda; //偏移影响
+    float HeightScale; //高度影响
+    float BubblesScale; //泡沫强度
+    float BubblesThreshold; //泡沫阈值
+    float deltaTime; // 累积时间
+    
+    float2 g_pad1; //对齐16字节打包
+}
+
+//用于FFT计算的阶数
+cbuffer cbns : register(b2)
+{
+    int Ns;
+    float3 g_pad2;
 }
 
 RWTexture2D<float4> GaussianRandomRT : register(u0);//保存高斯随机数
+RWTexture2D<float4> HeightSpectrumRT : register(u1); //高度频谱
+RWTexture2D<float4> DisplaceXSpectrumRT : register(u2); //X偏移频谱
+RWTexture2D<float4> DisplaceZSpectrumRT : register(u3); //Z偏移频谱
+RWTexture2D<float4> DisplaceRT : register(u4); //最后生成的偏移纹理
+RWTexture2D<float4> InputRT : register(u5); //输入
+RWTexture2D<float4> OutputRT : register(u6); //输出
+RWTexture2D<float4> NormalRT : register(u7); //法线纹理
+RWTexture2D<float4> BubblesRT : register(u8); //泡沫纹理
 
 //函数声明
 float DonelanBannerDirectionalSpreading(float2 k);
 float PositiveCosineSquaredDirectionalSpreading(float2 k);
-float phillips(float2 k);
-float dispersion(float2 k);
-float2 gaussian(float2 id);
-uint wangHash(uint seed);
-float rand();
-float2 complexMultiply(float2 c1, float2 c2);
+float Phillips(float2 k);
+float Dispersion(float2 k);
+float2 Gaussian(float2 id);
+uint WangHash(uint seed);
+float Rand();
+float2 CcomplexMultiply(float2 c1, float2 c2);
 
 //Donelan-Banner方向拓展
 float DonelanBannerDirectionalSpreading(float2 k)
 {
     float betaS;
     float omegap = 0.855f * G / length(WindVelocityAndSeed.xy);
-    float ratio = dispersion(k) / omegap;
+    float ratio = Dispersion(k) / omegap;
 
     if (ratio < 0.95f)
     {
@@ -52,10 +75,22 @@ float DonelanBannerDirectionalSpreading(float2 k)
 
     return betaS / max(1e-7f, 2.0f * tanh(betaS * PI) * pow(cosh(betaS * theta), 2));
 }
+//正余弦平方方向拓展
+float PositiveCosineSquaredDirectionalSpreading(float2 k)
+{
+    float theta = atan2(k.y, k.x) - atan2(WindVelocityAndSeed.y, WindVelocityAndSeed.x);
+    if (theta > -PI / 2.0f && theta < PI / 2.0f)
+    {
+        return 2.0f / PI * pow(cos(theta), 2);
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 
-
-float phillips(float2 k)
+float Phillips(float2 k)
 {
     float kLength = length(k);
     float kLength2 = kLength * kLength;
@@ -112,12 +147,12 @@ float2 Gaussian(float2 id)
 }
 
 //计算弥散ω(k)=sqrt(gk)
-float dispersion(float2 k)
+float Dispersion(float2 k)
 {
     return sqrt(G * length(k));
 }
 //复数相乘
-float2 complexMultiply(float2 c1, float2 c2)
+float2 ComplexMultiply(float2 c1, float2 c2)
 {
     return float2(c1.x * c2.x - c1.y * c2.y,
     c1.x * c2.y + c1.y * c2.x);
