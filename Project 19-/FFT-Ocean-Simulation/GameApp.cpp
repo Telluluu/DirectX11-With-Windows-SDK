@@ -143,12 +143,14 @@ void GameApp::DrawScene()
     // 1. 绘制不透明对象
     //
     m_BasicEffect.SetRenderDefault();
-    m_Land.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    //m_Land.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    
+
     // ******************
     // 2. 绘制半透明/透明对象
     //
     m_BasicEffect.SetRenderTransparent();
-    m_WireFence.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    //m_WireFence.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
     if (m_WavesMode)
         m_GpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
@@ -233,6 +235,7 @@ bool GameApp::InitResource()
     // 初始化不会变化的值
     //
 
+    //***********
     // 方向光
     DirectionalLight dirLight[3]{};
     dirLight[0].ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -251,6 +254,7 @@ bool GameApp::InitResource()
     dirLight[2].direction = XMFLOAT3(0.0f, -0.707f, -0.707f);
     for (int i = 0; i < 3; ++i)
         m_BasicEffect.SetDirLight(i, dirLight[i]);
+
 
     // ******************
     // 初始化雾效和绘制状态
