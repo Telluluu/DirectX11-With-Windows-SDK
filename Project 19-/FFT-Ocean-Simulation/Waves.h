@@ -168,4 +168,53 @@ private:
     std::unique_ptr<Texture2D> m_pPrevSolutionTexture;      // 保存上一次模拟结果的y值二维数组
 };
 
+
+
+
+class Ocean : public Waves
+{
+public:
+    // 不允许直接构造Waves，请从CpuWaves或GpuWaves构造
+    Ocean() = default;
+    ~Ocean() = default;
+    // 不允许拷贝，允许移动
+    Ocean(const Ocean&) = delete;
+    Ocean& operator=(const Ocean&) = delete;
+    Ocean(Ocean&&) = default;
+    Ocean& operator=(Ocean&&) = default;
+
+    void InitResource(
+        ID3D11Device* device,
+        uint32_t rows,                  // 顶点行数
+        uint32_t cols,                  // 顶点列数
+        float texU,                     // 纹理坐标U方向最大值
+        float texV,                     // 纹理坐标V方向最大值
+        float timeStep,                 // 时间步长
+        float spatialStep,              // 空间步长
+        float waveSpeed,                // 波速
+        float damping,                  // 粘性阻尼力
+        float flowSpeedX,               // 水流X方向速度
+        float flowSpeedY);               // 水流Y方向速度
+
+    void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+
+private:
+    std::unique_ptr<EffectHelper> m_pEffectHelper = nullptr;
+
+    //用Comptr管理纹理资源
+    ComPtr<ID3D11Texture2D> m_pGaussianRandomRT;         //高斯随机数对
+
+    ComPtr<ID3D11Texture2D> m_pHeightSpectrumRT;         //高度频谱
+    ComPtr<ID3D11Texture2D> m_pDisplaceXSpectrumRT;      //x方向偏移频谱
+    ComPtr<ID3D11Texture2D> m_pDisplaceZSpectrumRT;      //z方向偏移频谱
+
+    ComPtr<ID3D11Texture2D> m_pDisplaceRT;               //（总）偏移频谱
+    ComPtr<ID3D11Texture2D> m_pInputRT;                  //FFT输入纹理
+    ComPtr<ID3D11Texture2D> m_pOutputRT;                 //FFT输出纹理
+    ComPtr<ID3D11Texture2D> m_pNormalRT;                 //法线纹理
+    ComPtr<ID3D11Texture2D> m_pBubblesRT;                //泡沫纹理
+
+
+};
+
 #endif

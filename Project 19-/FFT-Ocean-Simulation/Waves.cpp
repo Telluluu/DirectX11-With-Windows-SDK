@@ -56,6 +56,59 @@ void Waves::InitResource(ID3D11Device* device, uint32_t rows, uint32_t cols,
     m_Model.materials[0].Set<XMFLOAT2>("$TexScale", XMFLOAT2(m_TexU, m_TexV));
 }
 
+//std::unique_ptr<EffectHelper> Ocean::m_pEffectHelper = nullptr;
+
+void Ocean::InitResource(ID3D11Device* device,
+    uint32_t rows, uint32_t cols, float texU, float texV,
+    float timeStep, float spatialStep, float waveSpeed, float damping, float flowSpeedX, float flowSpeedY)
+{
+    if (!m_pEffectHelper)
+    {
+        m_pEffectHelper = std::make_unique<EffectHelper>();
+        std::vector<LPCWSTR> csoFileName
+        {
+            L"Shaders/ComputeGaussianRandom_CS.cso"
+        };
+        std::vector<std::string> shaderName
+        {
+            "ComputeGaussianRandom"
+        };
+
+        ComPtr<ID3DBlob> blob;
+        auto pCsoFileName = csoFileName.begin();
+        auto pShaderName = shaderName.begin();
+
+        for (; pCsoFileName != csoFileName.end() && pShaderName != shaderName.end(); pCsoFileName++, pShaderName++)
+        {
+            HR(D3DReadFileToBlob(*pCsoFileName, blob.ReleaseAndGetAddressOf()));
+            HR(m_pEffectHelper->AddShader(*pShaderName, device, blob.Get()));
+        }
+
+        EffectPassDesc passDesc;
+
+        for (auto& shader : shaderName)
+        {
+            passDesc.nameCS = shader;
+            HR(m_pEffectHelper->AddEffectPass(shader, device, &passDesc));
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void CpuWaves::InitResource(ID3D11Device* device,
     uint32_t rows, uint32_t cols, float texU, float texV, float timeStep, float spatialStep,
     float waveSpeed, float damping, float flowSpeedX, float flowSpeedY)
