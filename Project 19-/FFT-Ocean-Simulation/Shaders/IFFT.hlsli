@@ -2,9 +2,9 @@
 #define LOG_SIZE 8
 
 
-static uint Size = 256;
+static uint Size = SIZE;
 
-RWTexture2D<float4> g_Target;
+RWTexture2D<float4> g_Target : register(u0);
 
 cbuffer Params
 {

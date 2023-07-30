@@ -79,7 +79,7 @@ void Ocean::InitResource(ID3D11Device* device,
             "OceanPrecompute",
             "FFTUpdate",
             "IFFT",
-            "Final",
+            "Final"
         };
 
         ComPtr<ID3DBlob> blob;
@@ -134,6 +134,7 @@ void Ocean::Precompute(ID3D11DeviceContext* deviceContext, float L, float A, flo
     m_pEffectHelper->GetConstantBufferVariable("A")->SetFloat(A);
     m_pEffectHelper->GetConstantBufferVariable("WindVelocity")->SetFloatVector(2, wind);
 
+    //绑定H0
     m_pEffectHelper->SetUnorderedAccessByName("g_h0Data", m_pHTide0Buffer->GetUnorderedAccess(), 0);
 
     auto pPass = m_pEffectHelper->GetEffectPass("OceanPrecompute");
@@ -149,17 +150,18 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
 {
     static float t = 0;
     t += dt;
-    m_pEffectHelper->GetConstantBufferVariable("deltaTime")->SetFloat(t / 10);
+    m_pEffectHelper->GetConstantBufferVariable("Time")->SetFloat(t / 10);
     m_pEffectHelper->GetConstantBufferVariable("N")->SetUInt(m_NumCols);
-    m_pEffectHelper->GetConstantBufferVariable("Lambda")->SetFloat(m_L);
+    m_pEffectHelper->GetConstantBufferVariable("kL")->SetFloat(m_L);
     m_pEffectHelper->GetConstantBufferVariable("A")->SetFloat(m_A);
 
+    ////绑定纹理
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHTide0Buffer->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(1, m_pHeight->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pDisplaceXZ->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(8, m_pGrad->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pGrad->GetUnorderedAccess(), 0);
 
-    auto pPass = m_pEffectHelper->GetEffectPass("OceanUpdate");
+    auto pPass = m_pEffectHelper->GetEffectPass("FFTUpdate");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
@@ -179,21 +181,22 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     //设置变换目标
     //高度偏移
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeightSpectrumRT->GetUnorderedAccess(), 0);
+    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
     pPass = m_pEffectHelper->GetEffectPass("IFFT");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
+    deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
     //另一方向
     m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
-    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeightSpectrumRT->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeightSpectrumRT->GetUnorderedAccess(), 0);
-    //pPass = m_pEffectHelper->GetEffectPass("FFT");
+    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
+    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
+    pPass = m_pEffectHelper->GetEffectPass("IFFT");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
     deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
 
     //水平偏移X
+    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pDisplaceXZ->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pDisplaceXZ->GetUnorderedAccess(), 0);
     m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
     pPass->Apply(deviceContext);
@@ -205,6 +208,7 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
 
     //水平偏移Z
+    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pGrad->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pGrad->GetUnorderedAccess(), 0);
     m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
     pPass->Apply(deviceContext);
@@ -226,6 +230,7 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pOriginalOffsetTexture->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(4, m_pNormalTexture->GetUnorderedAccess(), 0);
 
+    //通过最后一个计算着色器将XYZ偏移合并，且与法线一起保存至m_pOriginalOffsetTexture和m_pNormalTexture
     pPass = m_pEffectHelper->GetEffectPass("Final");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);

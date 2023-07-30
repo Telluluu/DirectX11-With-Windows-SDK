@@ -267,7 +267,6 @@ void BasicEffect::SetTextureDebug(ID3D11ShaderResourceView* textureDebug)
     pImpl->m_pEffectHelper->SetShaderResourceByName("g_OriginalDisplacementMap", textureDebug);
 }
 
-
 void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 {
     XMMATRIX W = XMLoadFloat4x4(&pImpl->m_World);

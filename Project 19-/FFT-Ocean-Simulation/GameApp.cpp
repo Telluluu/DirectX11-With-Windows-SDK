@@ -4,36 +4,36 @@
 using namespace DirectX;
 
 
-//只需要传递一次的cb
-struct
-{
-    float m_SpatialStep = 0.0f;			// 海洋宽度
-    int fftSize;   //fft纹理大小
-    DirectX::XMFLOAT2 g_pad0;
-} m_CBInitSettings = {};
-
-
-//更新时维护的参数结构体
-struct
-{
-    float A = 10;            //海浪高度因子
-    DirectX::XMFLOAT2 WindVelocityAndSeed = { 0.1f, 0.2f };//xy为风速
-
-    float Lambda = -1.0;  //控制偏移大小
-    float HeightScale = 1.0;  //高度影响
-    float BubblesScale = 1.0;  //泡沫强度
-    float BubblesThreshold = 1.0;  //泡沫阈值
-    float deltaTime = 0.0f;		// 累积时间
-
-} m_CBUpdataSettings = {};// 对应Waves.hlsli的常量缓冲区
-
-
-//专门传递Ns的结构体（用于FFT计算时的阶数）
-struct
-{
-    int ns;
-    DirectX::XMFLOAT3 g_pad1;
-}m_CBns = {};
+////只需要传递一次的cb
+//struct
+//{
+//    float m_SpatialStep = 0.0f;			// 海洋宽度
+//    int fftSize;   //fft纹理大小
+//    DirectX::XMFLOAT2 g_pad0;
+//} m_CBInitSettings = {};
+//
+//
+////更新时维护的参数结构体
+//struct
+//{
+//    float A = 10;            //海浪高度因子
+//    DirectX::XMFLOAT2 WindVelocityAndSeed = { 0.1f, 0.2f };//xy为风速
+//
+//    float Lambda = -1.0;  //控制偏移大小
+//    float HeightScale = 1.0;  //高度影响
+//    float BubblesScale = 1.0;  //泡沫强度
+//    float BubblesThreshold = 1.0;  //泡沫阈值
+//    float deltaTime = 0.0f;		// 累积时间
+//
+//} m_CBUpdataSettings = {};// 对应Waves.hlsli的常量缓冲区
+//
+//
+////专门传递Ns的结构体（用于FFT计算时的阶数）
+//struct
+//{
+//    int ns;
+//    DirectX::XMFLOAT3 g_pad1;
+//}m_CBns = {};
 
 
 GameApp::GameApp(HINSTANCE hInstance, const std::wstring& windowName, int initWidth, int initHeight)
@@ -117,6 +117,7 @@ void GameApp::UpdateScene(float dt)
             //    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
             //else
             //    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+            m_Ocean.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.0f);
                 
         }
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
@@ -126,6 +127,9 @@ void GameApp::UpdateScene(float dt)
     }
     ImGui::End();
     ImGui::Render();
+
+    m_Ocean.OceanUpdate(m_pd3dImmediateContext.Get(), dt);
+
 
     //// 每1/4s生成一个随机水波
     //if (m_Timer.TotalTime() - m_BaseTime >= 0.25f)

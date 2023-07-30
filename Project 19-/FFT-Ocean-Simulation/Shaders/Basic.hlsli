@@ -2,8 +2,13 @@
 
 Texture2D g_DiffuseMap : register(t0);          // 物体纹理
 Texture2D g_DisplacementMap : register(t1);     // 位移贴图
-SamplerState g_SamLinearWrap : register(s0);    // 线性过滤+Wrap采样器
-SamplerState g_SamPointClamp : register(s1);    // 点过滤+Clamp采样器
+
+Texture2D<float4> g_OriginalDisplacementMap : register(t2); // 3向贴图
+Texture2D<float4> g_NormalMap : register(t3); // 3向贴图
+
+SamplerState g_SamLinearWrap : register(s0); // 线性过滤+Wrap采样器
+SamplerState g_SamPointClamp : register(s1); // 点过滤+Clamp采样器
+
 
 cbuffer CBChangesEveryInstanceDrawing : register(b0)
 {
