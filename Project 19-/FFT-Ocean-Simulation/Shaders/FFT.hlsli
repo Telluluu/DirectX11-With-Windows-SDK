@@ -29,15 +29,15 @@ cbuffer cbns : register(b2)
     float3 g_pad1;
 }
 
-RWTexture2D<float4> GaussianRandomRT : register(u0);//保存高斯随机数
+RWTexture2D<float4> g_h0Data : register(u0); //高度频谱
 RWTexture2D<float4> HeightSpectrumRT : register(u1); //高度频谱
-RWTexture2D<float4> DisplaceXSpectrumRT : register(u2); //X偏移频谱
-RWTexture2D<float4> DisplaceZSpectrumRT : register(u3); //Z偏移频谱
-RWTexture2D<float4> DisplaceRT : register(u4); //最后生成的偏移纹理
-RWTexture2D<float4> InputRT : register(u5); //输入
-RWTexture2D<float4> OutputRT : register(u6); //输出
-RWTexture2D<float4> NormalRT : register(u7); //法线纹理
-RWTexture2D<float4> BubblesRT : register(u8); //泡沫纹理
+RWTexture2D<float4> DisplaceXZSpectrumRT : register(u2); //XZ偏移频谱
+RWTexture2D<float4> DisplaceRT : register(u3); //最后生成的偏移纹理
+RWTexture2D<float4> InputRT : register(u4); //输入
+RWTexture2D<float4> OutputRT : register(u5); //输出
+RWTexture2D<float4> NormalRT : register(u6); //法线纹理
+RWTexture2D<float4> BubblesRT : register(u7); //泡沫纹理
+RWTexture2D<float4> Grad : register(u8); // 梯度，用于计算法线
 
 //函数声明
 float DonelanBannerDirectionalSpreading(float2 k);

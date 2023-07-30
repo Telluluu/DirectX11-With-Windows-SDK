@@ -1,0 +1,65 @@
+#include "FFT.hlsli"
+
+void HeightUpdate(float2 k, unit2 id)
+{
+    float omegat = Dispersion(k) * deltaTime;
+    float c = cos(omegat);
+    float s = sin(omegat);
+    float4 h0;
+    uint2 nm = id;
+    if (id.x < N / 2)
+    {
+        nm.x = id.x + N / 2;
+    }
+    else
+    {
+        nm.x = id.x - N / 2;
+    }
+    if(id.y < N / 2)
+    {
+        nm.y = id.y + N / 2;
+    }
+    else
+    {
+        nm.y = id.y - N / 2;
+    }
+    h0 = g_h0Data[nm];
+    //高度随时间变化
+    float2 h1 = ComplexMultiply(h0.xy, float2(c, s)); //h0
+    float2 h2 = ComplexMultiply(h0.zw, float2(c, -s)); //conj h0
+
+    float2 HTilde = h1 + h2;
+
+    //高度频谱
+    HeightSpectrumRT[id] = float4(HTilde, 0, 0);
+}
+
+void UpdateDxzAndGrad(float2 k, uint2 id)
+{
+    k /= max(0.001f, length(k));
+    float2 HTilde = HeightSpectrumRT[id].xy;
+
+    float2 kxHTilde = ComplexMultiply(float2(0, -k.x), HTilde);
+    float2 kzHTilde = ComplexMultiply(float2(0, -k.y), HTilde);
+    
+    float omegat = dot(k, id);
+    float2 w = (cos(omegat), sin(omegat));
+    float2 Gradx = ComplexMultiply(kxHTilde, w);
+    float2 Gradz = ComplexMultiply(kzHTilde, w);
+
+    DisplaceXZSpectrumRT[id] = float4(kxHTilde, kzHTilde);
+    Grad[id] = float4(Gradx, Gradz);
+
+}
+
+
+[numthreads(16, 16, 1)]
+//Update
+void CS( uint3 DTid : SV_DispatchThreadID )
+{
+    float2 k = vec_k(DTid.xy);
+    
+    HeightUpdate(k, DTid.xy);
+    AllMemoryBarrierWithGroupSync();
+    UpdateDxzAndGrad(k, DTid.xy);
+}

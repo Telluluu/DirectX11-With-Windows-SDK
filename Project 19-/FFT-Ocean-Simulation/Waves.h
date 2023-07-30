@@ -203,40 +203,15 @@ public:
 private:
     static std::unique_ptr<EffectHelper> m_pEffectHelper;
 
-    //用Comptr管理纹理资源
+    std::unique_ptr<Texture2D> m_pOriginalOffsetTexture;
+    std::unique_ptr<Texture2D> m_pNormalTexture;
+    std::unique_ptr<Texture2D> m_pGerstnerOffset;
 
-    ComPtr<ID3D11Texture2D> m_pHeightSpectrumRT;         //高度频谱
-    ComPtr<ID3D11Texture2D> m_pDisplaceXSpectrumRT;      //x方向偏移频谱
-    ComPtr<ID3D11Texture2D> m_pDisplaceZSpectrumRT;      //z方向偏移频谱
+    std::unique_ptr<Texture2D> m_pHTide0Buffer;
+    std::unique_ptr<Texture2D> m_pHeight;
+    std::unique_ptr<Texture2D> m_pDisplaceXZ;
+    std::unique_ptr<Texture2D> m_pGrad;
 
-    ComPtr<ID3D11Texture2D> m_pDisplaceRT;               //（总）偏移频谱
-    ComPtr<ID3D11Texture2D> m_pInputRT;                  //FFT输入纹理
-    ComPtr<ID3D11Texture2D> m_pOutputRT;                 //FFT输出纹理
-    ComPtr<ID3D11Texture2D> m_pNormalRT;                 //法线纹理
-    ComPtr<ID3D11Texture2D> m_pBubblesRT;                //泡沫纹理
-
-    ComPtr<ID3D11ShaderResourceView> m_pDisplaceSRV;    //只需要为三个采样需要
-    ComPtr<ID3D11ShaderResourceView> m_pNormalSRV;      //用的的纹理资源创建着色器视图资源
-    ComPtr<ID3D11ShaderResourceView> m_pBubblesSRV;
-
-    //无序访问视图
-    ComPtr<ID3D11UnorderedAccessView> m_pHeightSpectrumUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pDisplaceXSpectrumUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pDisplaceZSpectrumUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pDisplaceUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pInputUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pOutputUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pNormalUAV;
-    ComPtr<ID3D11UnorderedAccessView> m_pBubblesUAV;
-
-    ComPtr<ID3D11ComputeShader> m_pCreateDisplaceSpectrumCS;
-    ComPtr<ID3D11ComputeShader> m_pCreateHeightSpectrumCS;
-    ComPtr<ID3D11ComputeShader> m_pFFTHorizontalCS;
-    ComPtr<ID3D11ComputeShader> m_pFFTHorizontalEndCS;
-    ComPtr<ID3D11ComputeShader> m_pFFTVerticalCS;
-    ComPtr<ID3D11ComputeShader> m_pFFTVerticalEndCS;
-    ComPtr<ID3D11ComputeShader> m_pTextureGenerationDisplaceCS;
-    ComPtr<ID3D11ComputeShader> m_pTextureGenerationNormalBubblesCS;
 };
 
 #endif

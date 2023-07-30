@@ -62,105 +62,83 @@ void Ocean::InitResource(ID3D11Device* device,
     uint32_t rows, uint32_t cols, float texU, float texV,
     float timeStep, float spatialStep, float waveSpeed, float damping, float flowSpeedX, float flowSpeedY)
 {
+
+    // 初始化特效
+    if (!m_pEffectHelper)
+    {
+        m_pEffectHelper = std::make_unique<EffectHelper>();
+        std::vector<LPCWSTR> fileName
+        {
+            //L"Shaders/OceanPrecompute_CS.cso",
+            //L"Shaders/OceanUpdate_CS.cso",
+            //L"Shaders/FFT_CS.cso",
+            //L"Shaders/AfterProcess_CS.cso",
+            L"Shaders/CreateDisplaceSpectrum_CS.cso",
+            L"Shaders/CreateHeightSpectrum_CS.cso",
+            L"Shaders/FFTHorizontal_CS.cso",
+            L"Shaders/FFTHorizontalEnd_CS.cso",
+            L"Shaders/FFTVertical_CS.cso",
+            L"Shaders/FFTVerticalEnd_CS.cso",
+            L"TextureGenerationDisplace_CS.cso",
+            L"TextureGenerationNormalBubbles_CS.cso"
+        };
+        std::vector<std::string> shaderName
+        {
+            //"OceanPrecompute",
+            //"OceanUpdate",
+            //"FFT",
+            //"AfterProcess",
+            "CreateDisplaceSpectrum",
+            "CreateHeightSpectrum",
+            "FFTHorizontal",
+            "FFTHorizontalEnd",
+            "FFTVertical",
+            "FFTVerticalEnd",
+            "TextureGenerationDisplace",
+            "TextureGenerationNormalBubbles"
+        };
+
+        ComPtr<ID3DBlob> blob;
+
+        auto pfileName = fileName.begin();
+        auto pshaderName = shaderName.begin();
+        for (; pfileName != fileName.end() && pshaderName != shaderName.end(); ++pfileName, ++pshaderName)
+        {
+            HR(D3DReadFileToBlob(*pfileName, blob.ReleaseAndGetAddressOf()));
+            HR(m_pEffectHelper->AddShader(*pshaderName, device, blob.Get()));
+        }
+
+        EffectPassDesc passDesc;
+
+        for (auto& shader : shaderName)
+        {
+            passDesc.nameCS = shader;
+            HR(m_pEffectHelper->AddEffectPass(shader, device, &passDesc));
+        }
+
+    }
+
     Waves::InitResource(device, rows, cols, texU, texV, timeStep,
         spatialStep, waveSpeed, damping, flowSpeedX, flowSpeedY, false);
 
+    //Gerstner Waves
+    m_pGerstnerOffset = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 
-    //为每一个纹理创建资源
-    D3D11_TEXTURE2D_DESC texDesc;
-    texDesc.Width = cols;
-    texDesc.Height = rows;
-    texDesc.MipLevels = 1;
-    texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    texDesc.SampleDesc.Count = 1;
-    texDesc.SampleDesc.Quality = 0;
-    texDesc.Usage = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE |
-        D3D11_BIND_UNORDERED_ACCESS;
-    texDesc.CPUAccessFlags = 0;
-    texDesc.MiscFlags = 0;
-    HRESULT hr;
-    //hr = device->CreateTexture2D(&texDesc, nullptr, m_pGaussianRandomRT.GetAddressOf());
-    // 
-    //if (FAILED(hr))
-    //    return hr;
-    //...
-    //为上面每一个纹理都创建资源,此处省略（太长了）
-    //...
+    m_pOriginalOffsetTexture = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+    m_pNormalTexture = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 
-
-    // 创建着色器资源视图
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    srvDesc.Texture2D.MipLevels = 1;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    //只需要为三个采样需要用的的纹理资源创建SRV
-    hr = device->CreateShaderResourceView(m_pDisplaceRT.Get(), &srvDesc, m_pDisplaceSRV.GetAddressOf());
-    //if (FAILED(hr))
-    //    return hr;
-    hr = device->CreateShaderResourceView(m_pNormalRT.Get(), &srvDesc, m_pNormalSRV.GetAddressOf());
-    //if (FAILED(hr))
-    //    return hr;
-    hr = device->CreateShaderResourceView(m_pBubblesRT.Get(), &srvDesc, m_pBubblesSRV.GetAddressOf());
-    //if (FAILED(hr))
-    //    return hr;
-
-
-    // 创建无序访问视图
-    D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-    uavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    uavDesc.Texture2D.MipSlice = 0;
-    hr = device->CreateUnorderedAccessView(m_pHeightSpectrumRT.Get(), &uavDesc, m_pDisplaceXSpectrumUAV.GetAddressOf());
-    hr = device->CreateUnorderedAccessView(m_pDisplaceRT.Get(), &uavDesc, m_pDisplaceZSpectrumUAV.GetAddressOf());
-    hr = device->CreateUnorderedAccessView(m_pInputRT.Get(), &uavDesc, m_pDisplaceUAV.GetAddressOf());
-    hr = device->CreateUnorderedAccessView(m_pOutputRT.Get(), &uavDesc, m_pInputUAV.GetAddressOf());
-    hr = device->CreateUnorderedAccessView(m_pNormalRT.Get(), &uavDesc, m_pOutputUAV.GetAddressOf());
-    hr = device->CreateUnorderedAccessView(m_pBubblesRT.Get(), &uavDesc, m_pNormalUAV.GetAddressOf());
-    //if (FAILED(hr))
-    //    return hr;
-    //
-    //为上面每一个纹理都创建UAV,此处省略（太长了）
-
-    //创建着色器资源
-
-    std::vector<LPCWSTR> fileName
-    {
-        L"Shaders/CreateDisplaceSpectrum_CS.cso",
-        L"Shaders/CreateHeightSpectrum_CS.cso",
-        L"Shaders/FFTHorizontal_CS.cso",
-        L"Shaders/FFTHorizontalEnd_CS.cso",
-        L"Shaders/FFTVertical_CS.cso",
-        L"Shaders/FFTVerticalEnd_CS.cso",
-        L"TextureGenerationDisplace_CS.cso",
-        L"TextureGenerationNormalBubbles_CS.cso"
-    };
-    std::vector<std::string> shaderName
-    {
-        "CreateDisplaceSpectrum",
-        "CreateHeightSpectrum",
-        "FFTHorizontal",
-        "FFTHorizontalEnd",
-        "FFTVertical",
-        "FFTVerticalEnd",
-        "TextureGenerationDisplace",
-        "TextureGenerationNormalBubbles"
-    };
-
-    Microsoft::WRL::ComPtr<ID3DBlob> blob;
-    auto pfileName = fileName.begin();
-    auto pshaderName = shaderName.begin();
-    for (; pfileName != fileName.end() && pshaderName != shaderName.end(); pfileName++, pshaderName++)
-    {
-        m_pEffectHelper->CreateShaderFromFile(*pshaderName, *pfileName, device,
-            "CS", "cs_5_0", nullptr, blob.GetAddressOf());
-        hr = device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pCompGaussianRandomCS.GetAddressOf());
-    }
-}
-{
-
+    //Ocean
+    m_pHTide0Buffer = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+    m_pHeight = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+    m_pDisplaceXZ = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+    m_pGrad = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 }
 
 
