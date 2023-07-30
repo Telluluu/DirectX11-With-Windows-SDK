@@ -63,6 +63,12 @@ public:
     
     void SetTextureDisplacement(ID3D11ShaderResourceView* textureDisplacement);
 
+    void SetTextureOriginalDisplacement(ID3D11ShaderResourceView* textureDisplacement);
+
+    void SetTextureNormal(ID3D11ShaderResourceView* textureDisplacement);
+
+    void SetTextureDebug(ID3D11ShaderResourceView* textureDisplacement);    
+
     // 各种类型灯光允许的最大数目
     static const int maxLights = 5;
 

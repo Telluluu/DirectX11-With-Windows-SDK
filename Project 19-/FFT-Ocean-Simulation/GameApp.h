@@ -46,6 +46,7 @@ private:
     GameObject m_WireFence;										// 篱笆盒
     CpuWaves m_CpuWaves;                                        // CPU水波
     GpuWaves m_GpuWaves;                                        // GPU水波
+    Ocean m_Ocean;                                              // GPU海面
 
     std::unique_ptr<Depth2D> m_pDepthTexture;                   // 深度纹理
     std::unique_ptr<Texture2D> m_pLitTexture;                   // 场景绘制的缓冲区

@@ -113,10 +113,10 @@ void GameApp::UpdateScene(float dt)
         };
         if (ImGui::Combo("Waves Mode", &m_WavesMode, wavemode_strs, ARRAYSIZE(wavemode_strs)))
         {
-            if (m_WavesMode)
-                m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-            else
-                m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+            //if (m_WavesMode)
+            //    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+            //else
+            //    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
                 
         }
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
@@ -127,29 +127,29 @@ void GameApp::UpdateScene(float dt)
     ImGui::End();
     ImGui::Render();
 
-    // 每1/4s生成一个随机水波
-    if (m_Timer.TotalTime() - m_BaseTime >= 0.25f)
-    {
-        m_BaseTime += 0.25f;
-        if (m_WavesMode)
-        {
-            m_GpuWaves.Disturb(m_pd3dImmediateContext.Get(), 
-                m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
-                m_MagnitudeRange(m_RandEngine));
-        }
-        else
-        {
-            m_CpuWaves.Disturb(m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
-                m_MagnitudeRange(m_RandEngine));
-        }
-            
-    }
-
-    // 更新波浪
-    if (m_WavesMode)
-        m_GpuWaves.Update(m_pd3dImmediateContext.Get(), dt);
-    else
-        m_CpuWaves.Update(dt);
+    //// 每1/4s生成一个随机水波
+    //if (m_Timer.TotalTime() - m_BaseTime >= 0.25f)
+    //{
+    //    m_BaseTime += 0.25f;
+    //    if (m_WavesMode)
+    //    {
+    //        m_GpuWaves.Disturb(m_pd3dImmediateContext.Get(), 
+    //            m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
+    //            m_MagnitudeRange(m_RandEngine));
+    //    }
+    //    else
+    //    {
+    //        m_CpuWaves.Disturb(m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
+    //            m_MagnitudeRange(m_RandEngine));
+    //    }
+    //        
+    //}
+    //
+    //// 更新波浪
+    //if (m_WavesMode)
+    //    m_GpuWaves.Update(m_pd3dImmediateContext.Get(), dt);
+    //else
+    //    m_CpuWaves.Update(dt);
 }
 
 void GameApp::DrawScene()
@@ -185,10 +185,12 @@ void GameApp::DrawScene()
     m_BasicEffect.SetRenderTransparent();
     //m_WireFence.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
-    if (m_WavesMode)
-        m_GpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-    else
-        m_CpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    //if (m_WavesMode)
+    //    m_GpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    //else
+    //    m_CpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
+    m_Ocean.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -237,16 +239,20 @@ bool GameApp::InitResource()
     // ******************
     // 初始化水面波浪
     //
-    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+    //m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+    //m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+    m_Ocean.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.0f, 0.0f);
+    float wind[] = { 1, 0 };
+    m_Ocean.Precompute(m_pd3dImmediateContext.Get(), 256, 1, wind);
 
-    // ******************
-    // 初始化随机数生成器
-    //
-    m_RandEngine.seed(std::random_device()());
-    m_RowRange = std::uniform_int_distribution<UINT>(5, m_CpuWaves.RowCount() - 5);
-    m_ColRange = std::uniform_int_distribution<UINT>(5, m_CpuWaves.ColumnCount() - 5);
-    m_MagnitudeRange = std::uniform_real_distribution<float>(0.5f, 1.0f);
+
+    //// ******************
+    //// 初始化随机数生成器
+    ////
+    //m_RandEngine.seed(std::random_device()());
+    //m_RowRange = std::uniform_int_distribution<UINT>(5, m_CpuWaves.RowCount() - 5);
+    //m_ColRange = std::uniform_int_distribution<UINT>(5, m_CpuWaves.ColumnCount() - 5);
+    //m_MagnitudeRange = std::uniform_real_distribution<float>(0.5f, 1.0f);
     
     // ******************
     // 初始化摄像机

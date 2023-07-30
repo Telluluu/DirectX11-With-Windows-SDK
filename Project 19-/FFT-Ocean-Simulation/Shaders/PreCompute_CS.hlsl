@@ -1,11 +1,7 @@
-#include "FFT.hlsli"
+#include "Phillips.hlsli"
 
-float2 vec_k(uint2 id)
-{
-    int n = id.x - N / 2;
-    int m = id.y - N / 2;
-    return float2(2.0f * PI * n / kL, 2.0f * PI * m / kL);
-}
+//¼ÆËã³ö·ÆÀûÆÕÆµÆ×H0
+
 
 [numthreads(16, 16, 1)]
 //PreCompute

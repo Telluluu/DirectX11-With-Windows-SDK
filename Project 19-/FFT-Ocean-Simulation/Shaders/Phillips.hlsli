@@ -1,47 +1,26 @@
 #define PI 3.1415926f
 #define G 9.8f
 
-//一些常量
-cbuffer cbInitSettings : register(b0)
+RWTexture2D<float4> g_h0Data : register(u0);
+
+cbuffer CBPrecompute : register(b0)
 {
-    float OceanLength; //海洋宽度
-    int N;  //纹理宽度
-    float2 g_pad0; //对齐16字节打包
+    uint N; // sections
+    float kL; //wave lambda
+    float A;
+    float2 WindVelocity;
+    float2 pad0;
 }
 
-//用于控制海面的参数
-cbuffer cbUpdateSettings : register(b1)
+cbuffer CBUpdate : register(b1)
 {
-    float A;//菲利普频谱参数，影响波浪高度
-    float2 WindVelocity;//风速
-    
-    float Lambda; //偏移影响
-    float HeightScale; //高度影响
-    float BubblesScale; //泡沫强度
-    float BubblesThreshold; //泡沫阈值
-    float deltaTime; // 累积时间
+    float Time;
+    float3 pad1;
 }
 
-//用于FFT计算的阶数
-cbuffer cbns : register(b2)
-{
-    int Ns;
-    float3 g_pad1;
-}
-
-RWTexture2D<float4> g_h0Data : register(u0); //高度频谱
-RWTexture2D<float4> HeightSpectrumRT : register(u1); //高度频谱
-RWTexture2D<float4> DisplaceXZSpectrumRT : register(u2); //XZ偏移频谱
-RWTexture2D<float4> DisplaceRT : register(u3); //最后生成的偏移纹理
-RWTexture2D<float4> InputRT : register(u4); //输入
-RWTexture2D<float4> OutputRT : register(u5); //输出
-RWTexture2D<float4> NormalRT : register(u6); //法线纹理
-RWTexture2D<float4> BubblesRT : register(u7); //泡沫纹理
-RWTexture2D<float4> Grad : register(u8); // 梯度，用于计算法线
 
 //函数声明
 float DonelanBannerDirectionalSpreading(float2 k);
-float PositiveCosineSquaredDirectionalSpreading(float2 k);
 float Phillips(float2 k);
 float Dispersion(float2 k);
 float2 Gaussian(float2 id);
@@ -73,19 +52,6 @@ float DonelanBannerDirectionalSpreading(float2 k)
 
     return betaS / max(1e-7f, 2.0f * tanh(betaS * PI) * pow(cosh(betaS * theta), 2));
 }
-//正余弦平方方向拓展
-float PositiveCosineSquaredDirectionalSpreading(float2 k)
-{
-    float theta = atan2(k.y, k.x) - atan2(WindVelocity.y, WindVelocity.x);
-    if (theta > -PI / 2.0f && theta < PI / 2.0f)
-    {
-        return 2.0f / PI * pow(cos(theta), 2);
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 float4 H0(float2 k, int2 id)
 {
@@ -102,7 +68,7 @@ float Phillips(float2 k)
     float kLength = length(k);
     kLength = max(0.01f, kLength);
     float kLength2 = kLength * kLength;
-    float kLength4 = kLength2 * kLength4;
+    float kLength4 = kLength2 * kLength2;
     float L = length(WindVelocity) * length(WindVelocity) / G;
     float L2 = L * L;
     
@@ -159,6 +125,16 @@ float Dispersion(float2 k)
 {
     return sqrt(G * length(k));
 }
+
+
+float2 vec_k(uint2 id)
+{
+    int n = id.x - N / 2;
+    int m = id.y - N / 2;
+    return float2(2.0f * PI * n / kL, 2.0f * PI * m / kL);
+}
+
+
 //复数相乘
 float2 ComplexMultiply(float2 c1, float2 c2)
 {

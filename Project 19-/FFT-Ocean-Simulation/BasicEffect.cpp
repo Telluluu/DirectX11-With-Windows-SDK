@@ -252,6 +252,21 @@ void BasicEffect::SetTextureDisplacement(ID3D11ShaderResourceView* textureDispla
     pImpl->m_pEffectHelper->SetShaderResourceByName("g_DisplacementMap", textureDisplacement);
 }
 
+void BasicEffect::SetTextureOriginalDisplacement(ID3D11ShaderResourceView* textureDisplacement)
+{
+    pImpl->m_pEffectHelper->SetShaderResourceByName("g_OriginalDisplacementMap", textureDisplacement);
+}
+
+void BasicEffect::SetTextureNormal(ID3D11ShaderResourceView* texture)
+{
+    pImpl->m_pEffectHelper->SetShaderResourceByName("g_NormalMap", texture);
+}
+
+void BasicEffect::SetTextureDebug(ID3D11ShaderResourceView* textureDebug)
+{
+    pImpl->m_pEffectHelper->SetShaderResourceByName("g_OriginalDisplacementMap", textureDebug);
+}
+
 
 void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 {

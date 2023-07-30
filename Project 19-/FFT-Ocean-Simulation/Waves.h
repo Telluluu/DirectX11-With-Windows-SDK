@@ -66,11 +66,17 @@ protected:
     float m_TexU = 0.0f;
     float m_TexV = 0.0f;
 
-    float m_FlowSpeedX = 0.0f;          // 水流X方向速度
-    float m_FlowSpeedY = 0.0f;          // 水流Y方向速度
-    float m_TimeStep = 0.0f;            // 时间步长
-    float m_SpatialStep = 0.0f;         // 空间步长
-    float m_AccumulateTime = 0.0f;      // 累积时间
+    float m_WindSpeedX = 0.0f;          // 水流X方向速度
+    float m_WindSpeedY = 0.0f;          // 水流Y方向速度
+    //float m_TimeStep = 0.0f;            // 时间步长
+    //float m_SpatialStep = 0.0f;         // 空间步长
+    //float m_AccumulateTime = 0.0f;      // 累积时间
+
+    float m_HightScale = 0.5;
+    float m_Lambda = 1;
+
+    float m_L{};
+    float m_A{};
 
     Model m_Model;
     GeometryData m_MeshData;
@@ -195,6 +201,9 @@ public:
         float damping,                  // 粘性阻尼力
         float flowSpeedX,               // 水流X方向速度
         float flowSpeedY);               // 水流Y方向速度
+
+
+    void Precompute(ID3D11DeviceContext* deviceContext, float Lamb, float A, float wind[2]);
 
     void OceanUpdate(ID3D11DeviceContext* deviceContext, float dt);
 
