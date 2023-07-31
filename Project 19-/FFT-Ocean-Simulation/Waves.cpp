@@ -78,7 +78,7 @@ void Ocean::InitResource(ID3D11Device* device,
         m_pEffectHelper = std::make_unique<EffectHelper>();
         std::vector<LPCWSTR> fileName
         {
-            L"Shaders/OceanPrecompute_CS.cso",
+            L"Shaders/PreCompute_CS.cso",
             L"Shaders/FFTUpdate_CS.cso",
             L"Shaders/TestFFT_CS.cso",
             L"Shaders/FFT_End_CS.cso",
@@ -86,10 +86,10 @@ void Ocean::InitResource(ID3D11Device* device,
         };
         std::vector<std::string> shaderName
         {
-            "OceanPrecompute",
+            "PreCompute",
             "FFTUpdate",
             "TestFFT",
-            "FFT_End"
+            "FFT_End",
             "Final"
         };
 
@@ -150,7 +150,7 @@ void Ocean::Precompute(ID3D11DeviceContext* deviceContext, float L, float A, flo
     //绑定H0
     m_pEffectHelper->SetUnorderedAccessByName("g_h0Data", m_pHTide0Buffer->GetUnorderedAccess(), 0);
 
-    auto pPass = m_pEffectHelper->GetEffectPass("OceanPrecompute");
+    auto pPass = m_pEffectHelper->GetEffectPass("PreCompute");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
@@ -182,7 +182,7 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
     // 清除绑定
-    ID3D11UnorderedAccessView* nullUAVs[6]{};
+    ID3D11UnorderedAccessView* nullUAVs[7]{};
     deviceContext->CSSetUnorderedAccessViews(0, 5, nullUAVs, nullptr);
 
 
@@ -330,7 +330,7 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     m_pEffectHelper->GetConstantBufferVariable("N")->SetUInt(1);
     m_pEffectHelper->GetConstantBufferVariable("HeightScale")->SetFloat(m_HightScale);
     m_pEffectHelper->GetConstantBufferVariable("Lambda")->SetFloat(m_Lambda);
-
+ 
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(1, m_pDisplaceX->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pDisplaceZ->GetUnorderedAccess(), 0);
@@ -343,13 +343,14 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
-    deviceContext->CSSetUnorderedAccessViews(0, 6, nullUAVs, nullptr);
+    deviceContext->CSSetUnorderedAccessViews(0, 7, nullUAVs, nullptr);
 }
 
 void Ocean ::ComputeFFT(ID3D11DeviceContext* deviceContext, std::unique_ptr<Texture2D>& pInputTex, int fftType)
 {
     m_pEffectHelper->SetUnorderedAccessBySlot(0, pInputTex->GetUnorderedAccess(), 0);
     auto pPass = m_pEffectHelper->GetEffectPass("TestFFT");
+    m_pEffectHelper->SetUnorderedAccessBySlot(0, pInputTex->GetUnorderedAccess(), 0);
     //设置CS资源
     //type 1.Horizontal  2.HorizontalEnd  3.Vertical  4.VerticalEnd
     switch (fftType)
@@ -360,11 +361,15 @@ void Ocean ::ComputeFFT(ID3D11DeviceContext* deviceContext, std::unique_ptr<Text
     case 2:
         pPass = m_pEffectHelper->GetEffectPass("FFT_End");
         break;
-
+    case 3:
+        pPass = m_pEffectHelper->GetEffectPass("TestFFT");
+        break;
+    case 4:
+        pPass = m_pEffectHelper->GetEffectPass("FFT_End");
+        break;
     default:
         break;
     }
-    m_pEffectHelper->SetUnorderedAccessBySlot(0, pInputTex->GetUnorderedAccess(), 0);
     //调用线程运算
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
