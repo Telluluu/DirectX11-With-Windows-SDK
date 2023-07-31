@@ -190,7 +190,7 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
     //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
     //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
-    pPass = m_pEffectHelper->GetEffectPass("IFFT");
+    //pPass = m_pEffectHelper->GetEffectPass("IFFT");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
     deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
@@ -250,6 +250,7 @@ void Ocean::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
 
     // 立即撤下位移贴图的绑定跟关闭水波绘制状态
     effect.SetTextureDisplacement(nullptr);
+    //effect.SetTextureNormal(nullptr);
     effect.SetTextureDebug(nullptr);
     //effect.SetWavesStates(false);
     effect.Apply(deviceContext);

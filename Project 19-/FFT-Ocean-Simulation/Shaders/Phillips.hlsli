@@ -26,7 +26,7 @@ float Dispersion(float2 k);
 float2 Gaussian(float2 id);
 uint WangHash(uint seed);
 float Rand();
-float2 CcomplexMultiply(float2 c1, float2 c2);
+float2 ComplexMultiply(float2 c1, float2 c2);
 
 //Donelan-Banner·½ÏòÍØÕ¹
 float DonelanBannerDirectionalSpreading(float2 k)

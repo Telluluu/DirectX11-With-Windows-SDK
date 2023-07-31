@@ -117,7 +117,7 @@ void GameApp::UpdateScene(float dt)
             //    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
             //else
             //    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-            m_Ocean.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.0f);
+            //
                 
         }
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
@@ -186,6 +186,7 @@ void GameApp::DrawScene()
     // ******************
     // 2. 绘制半透明/透明对象
     //
+    //m_Ocean.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     m_BasicEffect.SetRenderTransparent();
     //m_WireFence.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
@@ -245,7 +246,7 @@ bool GameApp::InitResource()
     //
     //m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
     //m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-    m_Ocean.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.0f, 0.0f);
+    m_Ocean.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 1.0f, 0.0f);
     float wind[] = { 1, 0 };
     m_Ocean.Precompute(m_pd3dImmediateContext.Get(), 256, 1, wind);
 

@@ -4,7 +4,7 @@
 
 static uint Size = SIZE;
 
-RWTexture2D<float4> g_Target : register(u0);
+RWTexture2D<float4> g_Target;
 
 cbuffer Params
 {
