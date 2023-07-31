@@ -244,6 +244,7 @@ void BasicEffect::SetRenderTransparent()
     pImpl->m_pCurrInputLayout = pImpl->m_pVertexPosNormalTexLayout;
     pImpl->m_CurrTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     pImpl->m_pCurrEffectPass->SetRasterizerState(RenderStates::RSNoCull.Get());
+    pImpl->m_pCurrEffectPass->SetDepthStencilState(RenderStates::DSSNoDepthTest.Get(), 0);
     pImpl->m_pCurrEffectPass->SetBlendState(RenderStates::BSTransparent.Get(), nullptr, 0xFFFFFFFF);
 }
 

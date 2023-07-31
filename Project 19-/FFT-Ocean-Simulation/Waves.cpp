@@ -82,7 +82,8 @@ void Ocean::InitResource(ID3D11Device* device,
             L"Shaders/FFTUpdate_CS.cso",
             L"Shaders/TestFFT_CS.cso",
             L"Shaders/FFT_End_CS.cso",
-            L"Shaders/Final_CS.cso"
+            L"Shaders/Final_CS.cso",
+            L"Shaders/IFFT_CS.cso"
         };
         std::vector<std::string> shaderName
         {
@@ -90,7 +91,8 @@ void Ocean::InitResource(ID3D11Device* device,
             "FFTUpdate",
             "TestFFT",
             "FFT_End",
-            "Final"
+            "Final",
+            "IFFT"
         };
 
         ComPtr<ID3DBlob> blob;
@@ -130,10 +132,10 @@ void Ocean::InitResource(ID3D11Device* device,
         D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
     m_pHeight = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
         D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
-    m_pDisplaceX = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+    m_pDisplaceXZ = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
         D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
-    m_pDisplaceZ = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
-        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+    //m_pDisplaceZ = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+    //    D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
     m_pGrad = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
         D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 }
@@ -173,157 +175,98 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     ////绑定纹理
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHTide0Buffer->GetUnorderedAccess(), 0);
     m_pEffectHelper->SetUnorderedAccessBySlot(1, m_pHeight->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pDisplaceX->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pDisplaceZ->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(4, m_pGrad->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pDisplaceXZ->GetUnorderedAccess(), 0);
+    //m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pDisplaceZ->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pGrad->GetUnorderedAccess(), 0);
 
     auto pPass = m_pEffectHelper->GetEffectPass("FFTUpdate");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
     // 清除绑定
-    ID3D11UnorderedAccessView* nullUAVs[7]{};
+    ID3D11UnorderedAccessView* nullUAVs[6]{};
     deviceContext->CSSetUnorderedAccessViews(0, 5, nullUAVs, nullptr);
 
 
-    ////IFFT
-    ////参数设置
-    //m_pEffectHelper->GetConstantBufferVariable("TargetsCount")->SetUInt(1);
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
-    //m_pEffectHelper->GetConstantBufferVariable("Inverse")->SetUInt(true);
-    //m_pEffectHelper->GetConstantBufferVariable("Scale")->SetUInt(false);
-    //m_pEffectHelper->GetConstantBufferVariable("Permute")->SetUInt(false);
-    //
-    ////设置变换目标
-    ////高度偏移
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
-    //pPass = m_pEffectHelper->GetEffectPass("IFFT");
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
+    //IFFT
+    //参数设置
+    m_pEffectHelper->GetConstantBufferVariable("TargetsCount")->SetUInt(1);
+    m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
+    m_pEffectHelper->GetConstantBufferVariable("Inverse")->SetUInt(true);
+    m_pEffectHelper->GetConstantBufferVariable("Scale")->SetUInt(false);
+    m_pEffectHelper->GetConstantBufferVariable("Permute")->SetUInt(false);
+
+    //设置变换目标
+    //高度偏移
+    m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
+    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeightSpectrumRT->GetUnorderedAccess(), 0);
+    pPass = m_pEffectHelper->GetEffectPass("IFFT");
+    pPass->Apply(deviceContext);
+    pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
     //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    ////另一方向
-    ////方向变换，通过将输入序列分成不同的子序列，并对这些子序列进行迭代计算
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
-    ////m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
-    ////pPass = m_pEffectHelper->GetEffectPass("IFFT");
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    ////解除绑定
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    //
-    ////水平偏移X
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pDisplaceXZ->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pDisplaceX->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    ////另一方向
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    //
-    ////水平偏移Z
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pGrad->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pDisplaceZ->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    ////另一方向
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    //
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pGrad->GetUnorderedAccess(), 0);
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    ////另一方向
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    //
-    //
-    //
-    ////PostIFFT
-    ////参数设置
-    //m_pEffectHelper->GetConstantBufferVariable("TargetsCount")->SetUInt(1);
-    //m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
-    //m_pEffectHelper->GetConstantBufferVariable("Inverse")->SetUInt(true);
-    //m_pEffectHelper->GetConstantBufferVariable("Scale")->SetUInt(false);
-    //m_pEffectHelper->GetConstantBufferVariable("Permute")->SetUInt(false);
-    //
-    ////设置变换目标
-    ////高度偏移
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
-    //pPass = m_pEffectHelper->GetEffectPass("PostIFFT");
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols / 2, m_NumRows / 2);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    ////解除绑定
-    //
-    ////水平偏移X
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pDisplaceX ->GetUnorderedAccess(), 0);
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
-    //pPass = m_pEffectHelper->GetEffectPass("PostIFFT");
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols / 2, m_NumRows / 2);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    ////解除绑定
-    //
-    ////水平偏移Z
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pDisplaceZ->GetUnorderedAccess(), 0);
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
-    //pPass = m_pEffectHelper->GetEffectPass("PostIFFT");
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols / 2, m_NumRows / 2);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    ////解除绑定
-    //
-    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pGrad->GetUnorderedAccess(), 0);
-    ////m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeight->GetUnorderedAccess(), 0);
-    //pPass = m_pEffectHelper->GetEffectPass("PostIFFT");
-    //pPass->Apply(deviceContext);
-    //pPass->Dispatch(deviceContext, m_NumCols / 2, m_NumRows / 2);
-    //deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
-    ////解除绑定
+    //另一方向
+    m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
+    //m_pEffectHelper->SetUnorderedAccessByName("g_Target", m_pHeightSpectrumRT->GetUnorderedAccess(), 0);
+    //m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeightSpectrumRT->GetUnorderedAccess(), 0);
+    //pPass = m_pEffectHelper->GetEffectPass("FFT");
+    pPass->Apply(deviceContext);
+    pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
+    deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
+
+    //水平偏移X
+    m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pDisplaceXZ->GetUnorderedAccess(), 0);
+    m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
+    pPass->Apply(deviceContext);
+    pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
+    //另一方向
+    m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
+    pPass->Apply(deviceContext);
+    pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
+    deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
+
+    //水平偏移Z
+    m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pGrad->GetUnorderedAccess(), 0);
+    m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(false);
+    pPass->Apply(deviceContext);
+    pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
+    //另一方向
+    m_pEffectHelper->GetConstantBufferVariable("Direction")->SetUInt(true);
+    pPass->Apply(deviceContext);
+    pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
+    deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
+
     
 
-    //计算FFT
+    ////计算FFT
+    ////
+    ////ffttype 1.Horizontal  2.HorizontalEnd  3.Vertical  4.VerticalEnd
+    //int FFTType = 0;
+    ////横向FFT
+    //for (int m = 1; m <= 8; m++)
+    //{
+    //    //更新Ns
+    //    m_CBns.ns = (int)pow(2, m - 1);
+    //    m_pEffectHelper->GetConstantBufferVariable("Ns")->SetSInt(m_CBns.ns);
     //
-    //ffttype 1.Horizontal  2.HorizontalEnd  3.Vertical  4.VerticalEnd
-    int FFTType = 0;
-    //横向FFT
-    for (int m = 1; m <= 8; m++)
-    {
-        //更新Ns
-        m_CBns.ns = (int)pow(2, m - 1);
-        m_pEffectHelper->GetConstantBufferVariable("Ns")->SetSInt(m_CBns.ns);
-
-        FFTType = m == 8 ? 2 : 1;//设置fft类型
-
-        ComputeFFT(deviceContext, m_pHeight, FFTType);
-        ComputeFFT(deviceContext, m_pDisplaceX, FFTType);
-        ComputeFFT(deviceContext, m_pDisplaceZ, FFTType);
-    }
-    //纵向FFT
-    for (int m = 1; m <= 8; m++)
-    {
-        //更新Ns
-        m_CBns.ns = (int)pow(2, m - 1);
-        m_pEffectHelper->GetConstantBufferVariable("Ns")->SetSInt(m_CBns.ns);
-
-        FFTType = m == 8 ? 4 : 3;//设置fft类型
-
-        ComputeFFT(deviceContext, m_pHeight, FFTType);
-        ComputeFFT(deviceContext, m_pDisplaceX, FFTType);
-        ComputeFFT(deviceContext, m_pDisplaceZ, FFTType);
-    }
+    //    FFTType = m == 8 ? 2 : 1;//设置fft类型
+    //
+    //    ComputeFFT(deviceContext, m_pHeight, FFTType);
+    //    ComputeFFT(deviceContext, m_pDisplaceX, FFTType);
+    //    ComputeFFT(deviceContext, m_pDisplaceZ, FFTType);
+    //}
+    ////纵向FFT
+    //for (int m = 1; m <= 8; m++)
+    //{
+    //    //更新Ns
+    //    m_CBns.ns = (int)pow(2, m - 1);
+    //    m_pEffectHelper->GetConstantBufferVariable("Ns")->SetSInt(m_CBns.ns);
+    //
+    //    FFTType = m == 8 ? 4 : 3;//设置fft类型
+    //
+    //    ComputeFFT(deviceContext, m_pHeight, FFTType);
+    //    ComputeFFT(deviceContext, m_pDisplaceX, FFTType);
+    //    ComputeFFT(deviceContext, m_pDisplaceZ, FFTType);
+    //}
 
 
     //储存到统一贴图
@@ -332,23 +275,22 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     m_pEffectHelper->GetConstantBufferVariable("Lambda")->SetFloat(m_Lambda);
  
     m_pEffectHelper->SetUnorderedAccessBySlot(0, m_pHeight->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(1, m_pDisplaceX->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pDisplaceZ->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pGrad->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(4, m_pOriginalOffsetTexture->GetUnorderedAccess(), 0);
-    m_pEffectHelper->SetUnorderedAccessBySlot(5, m_pNormalTexture->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(1, m_pDisplaceXZ->GetUnorderedAccess(), 0);
+    //m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pDisplaceZ->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(2, m_pGrad->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(3, m_pOriginalOffsetTexture->GetUnorderedAccess(), 0);
+    m_pEffectHelper->SetUnorderedAccessBySlot(4, m_pNormalTexture->GetUnorderedAccess(), 0);
 
     //通过最后一个计算着色器将XYZ偏移合并，且与法线分别保存至m_pOriginalOffsetTexture和m_pNormalTexture
     pPass = m_pEffectHelper->GetEffectPass("Final");
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
-    deviceContext->CSSetUnorderedAccessViews(0, 7, nullUAVs, nullptr);
+    deviceContext->CSSetUnorderedAccessViews(0, 6, nullUAVs, nullptr);
 }
 
 void Ocean ::ComputeFFT(ID3D11DeviceContext* deviceContext, std::unique_ptr<Texture2D>& pInputTex, int fftType)
 {
-    m_pEffectHelper->SetUnorderedAccessBySlot(0, pInputTex->GetUnorderedAccess(), 0);
     auto pPass = m_pEffectHelper->GetEffectPass("TestFFT");
     m_pEffectHelper->SetUnorderedAccessBySlot(0, pInputTex->GetUnorderedAccess(), 0);
     //设置CS资源
@@ -389,7 +331,6 @@ void Ocean::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
     effect.SetTextureDebug(m_pHeight->GetShaderResource());
 
     //effect.SetWavesStates(true, m_SpatialStep);
-
     GameObject::Draw(deviceContext, effect);
 
     // 立即撤下位移贴图的绑定跟关闭水波绘制状态

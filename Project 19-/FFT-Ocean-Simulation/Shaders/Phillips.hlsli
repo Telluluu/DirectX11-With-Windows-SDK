@@ -76,7 +76,7 @@ float Phillips(float2 k)
     //在Tessendorf的论文中提到可以将|{\vec k^2·\vec \omega}|^2修改为exp(-k^2 * l^2)
     //其中l<<L
     
-    float damping = 0.01f;
+    float damping = 1.0f;
     float l = L * damping * damping;
     float l2 = l * l;
     

@@ -220,8 +220,8 @@ private:
 
     std::unique_ptr<Texture2D> m_pHTide0Buffer;
     std::unique_ptr<Texture2D> m_pHeight;
-    std::unique_ptr<Texture2D> m_pDisplaceX;
-    std::unique_ptr<Texture2D> m_pDisplaceZ;
+    std::unique_ptr<Texture2D> m_pDisplaceXZ;
+    //std::unique_ptr<Texture2D> m_pDisplaceZ;
     std::unique_ptr<Texture2D> m_pGrad;
 
 };

@@ -15,6 +15,6 @@ void CS(uint3 id : SV_DispatchThreadID)
     float2 x1 = g_Target[int2(idxs.x + N * 0.5f, idxs.y)].xy;
 
     float2 output = x0 + ComplexMultiply(w, x1);
-     + float2(w.x * x1.x - w.y * x1.y, w.x * x1.y + w.y * x1.x);
+    // + float2(w.x * x1.x - w.y * x1.y, w.x * x1.y + w.y * x1.x);
     g_Target[id.xy] = float4(output, 0, 0);
 }
