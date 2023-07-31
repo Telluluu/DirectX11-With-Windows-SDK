@@ -207,6 +207,8 @@ public:
 
     void OceanUpdate(ID3D11DeviceContext* deviceContext, float dt);
 
+    void ComputeFFT(ID3D11DeviceContext* deviceContext, std::unique_ptr<Texture2D>& pInputTex, int fftTyp);
+
     void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
 private:
@@ -218,7 +220,8 @@ private:
 
     std::unique_ptr<Texture2D> m_pHTide0Buffer;
     std::unique_ptr<Texture2D> m_pHeight;
-    std::unique_ptr<Texture2D> m_pDisplaceXZ;
+    std::unique_ptr<Texture2D> m_pDisplaceX;
+    std::unique_ptr<Texture2D> m_pDisplaceZ;
     std::unique_ptr<Texture2D> m_pGrad;
 
 };

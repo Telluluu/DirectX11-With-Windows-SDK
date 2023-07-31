@@ -28,12 +28,7 @@ using namespace DirectX;
 //} m_CBUpdataSettings = {};// 对应Waves.hlsli的常量缓冲区
 //
 //
-////专门传递Ns的结构体（用于FFT计算时的阶数）
-//struct
-//{
-//    int ns;
-//    DirectX::XMFLOAT3 g_pad1;
-//}m_CBns = {};
+
 
 
 GameApp::GameApp(HINSTANCE hInstance, const std::wstring& windowName, int initWidth, int initHeight)
@@ -107,19 +102,19 @@ void GameApp::UpdateScene(float dt)
 
     if (ImGui::Begin("Waves"))
     {
-        static const char* wavemode_strs[] = {
-            "CPU",
-            "GPU"
-        };
-        if (ImGui::Combo("Waves Mode", &m_WavesMode, wavemode_strs, ARRAYSIZE(wavemode_strs)))
-        {
-            //if (m_WavesMode)
-            //    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-            //else
-            //    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-            //
-                
-        }
+        //static const char* wavemode_strs[] = {
+        //    "CPU",
+        //    "GPU"
+        //};
+        //if (ImGui::Combo("Waves Mode", &m_WavesMode, wavemode_strs, ARRAYSIZE(wavemode_strs)))
+        //{
+        //    //if (m_WavesMode)
+        //    //    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+        //    //else
+        //    //    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+        //    //
+        //        
+        //}
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
         {
             m_BasicEffect.SetFogState(m_EnabledFog);

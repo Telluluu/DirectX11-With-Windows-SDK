@@ -2,8 +2,9 @@
 
 //根据菲利普频谱得到高度频谱、X轴Z轴偏移频谱
 RWTexture2D<float4> g_Height : register(u1);
-RWTexture2D<float4> g_DisplaceXZ : register(u2);
-RWTexture2D<float4> g_Grad : register(u3);
+RWTexture2D<float4> g_DisplaceX : register(u2);
+RWTexture2D<float4> g_DisplaceZ : register(u3);
+RWTexture2D<float4> g_Grad : register(u4);
 
 
 
@@ -45,6 +46,7 @@ void UpdateDxzAndGrad(float2 k, uint2 id)
     k /= max(0.001f, length(k));
     float2 HTilde = g_Height[id].xy;
 
+    //由高度频谱求出x/z轴偏移频谱
     float2 kxHTilde = ComplexMultiply(float2(0, -k.x), HTilde);
     float2 kzHTilde = ComplexMultiply(float2(0, -k.y), HTilde);
     
@@ -53,7 +55,8 @@ void UpdateDxzAndGrad(float2 k, uint2 id)
     float2 Gradx = ComplexMultiply(kxHTilde, w);
     float2 Gradz = ComplexMultiply(kzHTilde, w);
 
-    g_DisplaceXZ[id] = float4(kxHTilde, kzHTilde);
+    g_DisplaceX[id] = float4(kxHTilde, 0, 0);
+    g_DisplaceZ[id] = float4(kzHTilde, 0, 0);
     g_Grad[id] = float4(Gradx, Gradz);
 
 }
