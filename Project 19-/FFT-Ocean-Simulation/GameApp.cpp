@@ -116,17 +116,31 @@ void GameApp::UpdateScene(float dt)
         //        
         //}
         m_BasicEffect.SetWavesStates(true);
-        static float Lambda = 1;
+        static float Lambda = 25;
         static float A = 25;
-        static float wind[2] = { 1,1 };
+        static float windVelocity = 1;
+        static float theta = 0;
+        const float PI = 3.1415926f;
+        float wind[2] = { windVelocity * cosf(theta * 2 * PI),windVelocity * sinf(theta * 2 * PI)};
         if (ImGui::SliderFloat("Lambda", &Lambda, 0, 256, "%.1f"))
         {
             m_Ocean.Precompute(m_pd3dImmediateContext.Get(), Lambda, A, wind);
         }
-        if (ImGui::SliderFloat("A", &A, 0, 100, "%.1f"))
+        if (ImGui::SliderFloat("WaveHeight", &A, 0, 350, "%.1f"))
         {
             m_Ocean.Precompute(m_pd3dImmediateContext.Get(), Lambda, A, wind);
         }
+        if (ImGui::SliderFloat("WindVelocity", &windVelocity, 0, 3, "%.1f"))
+        {
+            float wind[2] = { windVelocity * cosf(theta * PI),windVelocity * sinf(theta * PI) };
+            m_Ocean.Precompute(m_pd3dImmediateContext.Get(), Lambda, A, wind);
+        }
+        if (ImGui::SliderFloat("WindDirection", &theta, -1, 1, "%.1f"))
+        {
+            float wind[2] = { windVelocity * cosf(theta * PI),windVelocity * sinf(theta * PI) };
+            m_Ocean.Precompute(m_pd3dImmediateContext.Get(), Lambda, A, wind);
+        }
+
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
         {
             m_BasicEffect.SetFogState(m_EnabledFog);
@@ -197,6 +211,7 @@ void GameApp::DrawScene()
     //
     //m_Ocean.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     m_BasicEffect.SetRenderTransparent();
+    m_Ocean.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     //m_WireFence.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
     //if (m_WavesMode)
