@@ -9,7 +9,7 @@ cbuffer CBPrecompute : register(b0)
     float kL; //wave lambda
     float A;
     float2 WindVelocity;
-    float2 pad0;
+    float3 pad0;
 }
 
 cbuffer CBUpdate : register(b1)
@@ -32,7 +32,7 @@ float2 ComplexMultiply(float2 c1, float2 c2);
 float DonelanBannerDirectionalSpreading(float2 k)
 {
     float betaS;
-    float omegap = 0.855f * G / length(WindVelocity.xy);
+    float omegap = 0.855f * G / length(WindVelocity);
     float ratio = Dispersion(k) / omegap;
 
     if (ratio < 0.95f)
@@ -66,7 +66,7 @@ float4 H0(float2 k, int2 id)
 float Phillips(float2 k)
 {
     float kLength = length(k);
-    kLength = max(0.01f, kLength);
+    kLength = max(0.001f, kLength);
     float kLength2 = kLength * kLength;
     float kLength4 = kLength2 * kLength2;
     float L = length(WindVelocity) * length(WindVelocity) / G;
@@ -80,7 +80,7 @@ float Phillips(float2 k)
     float l = L * damping * damping;
     float l2 = l * l;
     
-    return A * exp(-1 / (kLength * L2)) / kLength4 * exp(-kLength2 * l2);
+    return A * exp(-1 / (kLength * L2)) / kLength4 / 100.0f /*exp(-kLength2 * l2)*/;
 }
 
 //以下三个函数用于生成h0(k)= (1/sqrt(2)) (ζ1+ζ2) sqrt(Ph(k)) 中的ζ1和ζ2
@@ -95,13 +95,13 @@ uint WangHash(uint seed)
     return seed;
 }
 //计算均匀分布随机数[0,1)
-float Rand(uint rng)
+float Rand(uint rngState)
 {
     // Xorshift算法
-    rng ^= (rng << 13);
-    rng ^= (rng >> 17);
-    rng ^= (rng << 5);
-    return rng / 4294967296.0f;;
+    rngState ^= (rngState << 13);
+    rngState ^= (rngState >> 17);
+    rngState ^= (rngState << 5);
+    return rngState / 4294967296.0f;;
 }
 //计算高斯随机数
 float2 Gaussian(float2 id)

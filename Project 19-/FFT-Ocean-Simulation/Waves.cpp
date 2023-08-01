@@ -43,19 +43,19 @@ void Waves::InitResource(ID3D11Device* device, uint32_t rows, uint32_t cols,
     m_WindSpeedY = flowSpeedY;
     //m_AccumulateTime = 0.0f;
 
-    float d = damping * timeStep + 2.0f;
-    float e = (waveSpeed * waveSpeed) * (timeStep * timeStep) / (spatialStep * spatialStep);
-    m_K1 = (damping * timeStep - 2.0f) / d;
-    m_K2 = (4.0f - 8.0f * e) / d;
-    m_K3 = (2.0f * e) / d;
+    //float d = damping * timeStep + 2.0f;
+    //float e = (waveSpeed * waveSpeed) * (timeStep * timeStep) / (spatialStep * spatialStep);
+    //m_K1 = (damping * timeStep - 2.0f) / d;
+    //m_K2 = (4.0f - 8.0f * e) / d;
+    //m_K3 = (2.0f * e) / d;
 
     m_MeshData = Geometry::CreateGrid(XMFLOAT2((cols - 1) * spatialStep, (rows - 1) * spatialStep), XMUINT2(cols - 1, rows - 1), XMFLOAT2(1.0f, 1.0f));
     Model::CreateFromGeometry(m_Model, device, m_MeshData, cpuWrite);
     m_pModel = &m_Model;
 
-    if (TextureManager::Get().GetTexture("..\\Texture\\water2.dds") == nullptr)
-        TextureManager::Get().CreateFromFile("..\\Texture\\water2.dds", false, true);
-    m_Model.materials[0].Set<std::string>("$Diffuse", "..\\Texture\\water2.dds");
+    //if (TextureManager::Get().GetTexture("..\\Texture\\water2.dds") == nullptr)
+    //    TextureManager::Get().CreateFromFile("..\\Texture\\water2.dds", false, true);
+    //m_Model.materials[0].Set<std::string>("$Diffuse", "..\\Texture\\water2.dds");
     m_Model.materials[0].Set<XMFLOAT4>("$AmbientColor", XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f));
     m_Model.materials[0].Set<XMFLOAT4>("$DiffuseColor", XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
     m_Model.materials[0].Set<XMFLOAT4>("$SpecularColor", XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f));
@@ -118,9 +118,6 @@ void Ocean::InitResource(ID3D11Device* device,
     Waves::InitResource(device, rows, cols, texU, texV, timeStep,
         spatialStep, waveSpeed, damping, flowSpeedX, flowSpeedY, false);
 
-    //Gerstner Waves
-    m_pGerstnerOffset = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32_FLOAT, 1,
-        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 
     m_pOriginalOffsetTexture = std::make_unique<Texture2D>(device, cols, rows, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
         D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
@@ -156,8 +153,6 @@ void Ocean::Precompute(ID3D11DeviceContext* deviceContext, float L, float A, flo
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
-
-
     // 清除绑定
     ID3D11UnorderedAccessView* nullUAVs[1]{};
     deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAVs, nullptr);
@@ -184,8 +179,8 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
     // 清除绑定
-    ID3D11UnorderedAccessView* nullUAVs[6]{};
-    deviceContext->CSSetUnorderedAccessViews(0, 5, nullUAVs, nullptr);
+    ID3D11UnorderedAccessView* nullUAVs[5]{};
+    deviceContext->CSSetUnorderedAccessViews(0, 4, nullUAVs, nullptr);
 
 
     //IFFT
@@ -286,7 +281,7 @@ void Ocean::OceanUpdate(ID3D11DeviceContext* deviceContext, float dt)
     pPass->Apply(deviceContext);
     pPass->Dispatch(deviceContext, m_NumCols, m_NumRows);
 
-    deviceContext->CSSetUnorderedAccessViews(0, 6, nullUAVs, nullptr);
+    deviceContext->CSSetUnorderedAccessViews(0, 5, nullUAVs, nullptr);
 }
 
 void Ocean ::ComputeFFT(ID3D11DeviceContext* deviceContext, std::unique_ptr<Texture2D>& pInputTex, int fftType)
@@ -330,11 +325,12 @@ void Ocean::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
     effect.SetTextureNormal(m_pNormalTexture->GetShaderResource());
     effect.SetTextureDebug(m_pHeight->GetShaderResource());
 
+
     //effect.SetWavesStates(true, m_SpatialStep);
     GameObject::Draw(deviceContext, effect);
 
     // 立即撤下位移贴图的绑定跟关闭水波绘制状态
-    effect.SetTextureDisplacement(nullptr);
+    effect.SetTextureOriginalDisplacement(nullptr);
     effect.SetTextureNormal(nullptr);
     effect.SetTextureDebug(nullptr);
     //effect.SetWavesStates(false);

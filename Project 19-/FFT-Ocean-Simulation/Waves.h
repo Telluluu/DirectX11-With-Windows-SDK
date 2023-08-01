@@ -216,7 +216,6 @@ private:
 
     std::unique_ptr<Texture2D> m_pOriginalOffsetTexture;
     std::unique_ptr<Texture2D> m_pNormalTexture;
-    std::unique_ptr<Texture2D> m_pGerstnerOffset;
 
     std::unique_ptr<Texture2D> m_pHTide0Buffer;
     std::unique_ptr<Texture2D> m_pHeight;

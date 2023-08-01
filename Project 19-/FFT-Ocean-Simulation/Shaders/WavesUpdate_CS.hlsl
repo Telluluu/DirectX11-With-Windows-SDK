@@ -1,5 +1,9 @@
 #include "Waves.hlsli"
 
+RWTexture2D<float4> g_Height : register(u1);
+RWTexture2D<float4> g_DisplaceXZ : register(u2);
+RWTexture2D<float4> g_Grad : register(u3);
+
 [numthreads(16, 16, 1)]
 void CS( uint3 DTid : SV_DispatchThreadID )
 {

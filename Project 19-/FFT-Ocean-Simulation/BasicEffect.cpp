@@ -238,6 +238,14 @@ void BasicEffect::SetRenderDefault()
     pImpl->m_pCurrEffectPass->SetDepthStencilState(nullptr, 0);
 }
 
+void BasicEffect::SetRenderWireframe()
+{
+    pImpl->m_pCurrEffectPass = pImpl->m_pEffectHelper->GetEffectPass("Basic");
+    pImpl->m_pCurrInputLayout = pImpl->m_pVertexPosNormalTexLayout;
+    pImpl->m_CurrTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    pImpl->m_pCurrEffectPass->SetRasterizerState(RenderStates::RSWireframe.Get());
+}
+
 void BasicEffect::SetRenderTransparent()
 {
     pImpl->m_pCurrEffectPass = pImpl->m_pEffectHelper->GetEffectPass("Basic");

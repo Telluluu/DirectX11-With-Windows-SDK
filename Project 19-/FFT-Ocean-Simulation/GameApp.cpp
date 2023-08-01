@@ -115,6 +115,18 @@ void GameApp::UpdateScene(float dt)
         //    //
         //        
         //}
+        m_BasicEffect.SetWavesStates(true);
+        static float Lambda = 1;
+        static float A = 25;
+        static float wind[2] = { 1,1 };
+        if (ImGui::SliderFloat("Lambda", &Lambda, 0, 256, "%.1f"))
+        {
+            m_Ocean.Precompute(m_pd3dImmediateContext.Get(), Lambda, A, wind);
+        }
+        if (ImGui::SliderFloat("A", &A, 0, 100, "%.1f"))
+        {
+            m_Ocean.Precompute(m_pd3dImmediateContext.Get(), Lambda, A, wind);
+        }
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
         {
             m_BasicEffect.SetFogState(m_EnabledFog);
@@ -177,6 +189,8 @@ void GameApp::DrawScene()
     m_BasicEffect.SetRenderDefault();
     //m_Land.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     
+    m_BasicEffect.SetRenderWireframe();
+    m_Ocean.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
     // ******************
     // 2. 绘制半透明/透明对象
@@ -190,7 +204,6 @@ void GameApp::DrawScene()
     //else
     //    m_CpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
-    m_Ocean.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 

@@ -23,7 +23,7 @@ void UpdateH(float2 k, uint2 id)
     {
         nm.x = id.x - N / 2;
     }
-    if(id.y < N/2)
+    if(id.y < N / 2)
     {
         nm.y = id.y + N / 2;
     }

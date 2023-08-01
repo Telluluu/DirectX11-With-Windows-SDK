@@ -60,6 +60,7 @@ public:
     void SetRenderDefault();
     // 透明混合绘制
     void SetRenderTransparent();
+    void SetRenderWireframe();
     
     void SetTextureDisplacement(ID3D11ShaderResourceView* textureDisplacement);
 
